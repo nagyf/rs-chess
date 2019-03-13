@@ -1,0 +1,7 @@
+[package]
+name = "chess"
+version = "0.1.0"
+authors = ["Ferenc Nagy <ferenc.nagy1@ge.com>"]
+edition = "2018"
+
+[dependencies]
