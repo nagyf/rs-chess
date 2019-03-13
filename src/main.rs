@@ -1,6 +1,5 @@
 extern crate regex;
 
-use crate::engine::board::Board;
 use crate::engine::fen;
 use crate::engine::fen::FENParseError;
 

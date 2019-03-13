@@ -4,6 +4,9 @@ use crate::engine::board::{Board, field, piece};
 use crate::engine::board::field::{File, Rank};
 use crate::engine::board::piece::CastlingRight;
 
+#[cfg(test)]
+mod tests;
+
 #[derive(Debug, Eq, PartialEq)]
 pub enum FENParseError {
     FENPiece(String),
