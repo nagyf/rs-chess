@@ -80,6 +80,8 @@ fn parse_rank(rank: &str, rank_num: u8) -> Result<Vec<FENPiece>, FENParseError> 
                 rank: field::number_as_rank(rank_num).unwrap(),
             });
             file += 1;
+        } else {
+            return Err(FENParseError::FENPiece(format!("Unable to parse rank: {}", rank)))
         }
     }
 
