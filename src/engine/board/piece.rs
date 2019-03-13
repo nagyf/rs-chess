@@ -1,6 +1,6 @@
 use std::fmt::{Display, Error, Formatter};
 
-#[derive(Eq, PartialEq, Hash)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub enum Type {
     Pawn,
     Rook,
@@ -10,10 +10,18 @@ pub enum Type {
     Queen
 }
 
-#[derive(Eq, PartialEq, Hash)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub enum Color {
     Black,
     White
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub enum CastlingRight {
+    WhiteQueen,
+    WhiteKing,
+    BlackQueen,
+    BlackKing
 }
 
 impl Display for Color {

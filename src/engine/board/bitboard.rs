@@ -1,7 +1,9 @@
-use std::fmt::{Display, Error, Formatter};
+use std::fmt::{Display, Error, Formatter, Debug};
 use std::ops::{BitAnd, BitOr, BitXor, Not, Shl, Shr};
 
 use super::constants;
+use crate::engine::board::field;
+use crate::engine::board::field::{Rank, File};
 
 ///
 /// Bitboard implemented with Little endian rank-file (LERF) mapping
@@ -40,6 +42,12 @@ impl Display for BitBoard {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         let result = self.format_with("X ", ". ");
         write!(f, "{}", result)
+    }
+}
+
+impl Debug for BitBoard {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        write!(f, "{:#018X}", self.0)
     }
 }
 
@@ -222,6 +230,30 @@ impl BitBoard {
     /// Rotate the board 90 degrees counter-clockwise
     pub fn rotate_90_ccw(&self) -> BitBoard {
         self.flip_vertical().flip_diag_a1_h8()
+    }
+
+    pub fn is_set(&self, rank: Rank, file: File) -> bool {
+        let square_index = BitBoard::square_index(rank, file);
+        let x: u64 = 1 << square_index;
+        (*self & x).value() != 0
+    }
+
+    pub fn set(&self, rank: Rank, file: File) -> BitBoard {
+        let square_index = BitBoard::square_index(rank, file);
+        let x: u64 = 1 << square_index;
+        *self | x
+    }
+
+    pub fn toggle(&self, rank: Rank, file: File) -> BitBoard {
+        let square_index = BitBoard::square_index(rank, file);
+        let x: u64 = 1 << square_index;
+        *self ^ x
+    }
+
+    fn square_index(rank: Rank, file: File) -> u64 {
+        let r = (field::rank_as_number(rank) - 1) as u64;
+        let f = (field::file_as_number(file) - 1) as u64;
+        8 * r + f
     }
 }
 
