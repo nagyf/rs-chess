@@ -1,9 +1,8 @@
-use crate::engine::board::BitBoard;
+use crate::engine::board::Board;
 
 pub mod engine;
 
 fn main() {
-    let board = BitBoard::from(0x000000000000000F);
+    let board = Board::new();
     println!("{}", board);
-    println!("{}", board.rotate_90_cw())
 }

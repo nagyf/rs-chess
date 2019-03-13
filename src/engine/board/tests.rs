@@ -1,4 +1,4 @@
-use crate::engine::board::BitBoard;
+use crate::engine::board::bitboard::BitBoard;
 
 #[test]
 fn new() {
