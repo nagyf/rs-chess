@@ -276,3 +276,80 @@ fn so_we_one_outside() {
     assert_eq!(0x0000000000000000, board.so_we_one().value())
 }
 
+#[test]
+fn pop_count_zero() {
+    let board = BitBoard::from(0x0000000000000000);
+    assert_eq!(0, board.pop_count())
+}
+
+#[test]
+fn pop_count_full_row() {
+    let board = BitBoard::from(0x00000000000000FF);
+    assert_eq!(8, board.pop_count())
+}
+
+#[test]
+fn pop_count_full_table() {
+    let board = BitBoard::universe();
+    assert_eq!(64, board.pop_count())
+}
+
+#[test]
+fn flip_vertical() {
+    let board = BitBoard::from(0x0000000000F0F0F0);
+    assert_eq!(0xF0F0F00000000000, board.flip_vertical().value())
+}
+
+#[test]
+fn mirror_horizontal() {
+    let board = BitBoard::from(0x0000000000F0F0F0);
+    assert_eq!(0x00000000000F0F0F, board.mirror_horizontal().value())
+}
+
+#[test]
+fn flip_diag_a1_h8() {
+    let board = BitBoard::from(0x0000000000000080);
+    assert_eq!(0x0100000000000000, board.flip_diag_a1_h8().value())
+}
+
+#[test]
+fn flip_diag_a8_h1() {
+    let board = BitBoard::from(0x0000000000000001);
+    assert_eq!(0x8000000000000000, board.flip_diag_a8_h1().value())
+}
+
+#[test]
+fn rotate_180() {
+    let board = BitBoard::from(0x000000000000FFFF);
+    assert_eq!(0xFFFF000000000000, board.rotate_180().value())
+}
+
+#[test]
+fn rotate_180_times_2() {
+    let board = BitBoard::from(0x000000000000FFFF);
+    assert_eq!(board.value(), board.rotate_180().rotate_180().value())
+}
+
+#[test]
+fn rotate_90_cw() {
+    let board = BitBoard::from(0x000000000000000F);
+    assert_eq!(0x0101010100000000, board.rotate_90_cw().value())
+}
+
+#[test]
+fn rotate_90_cw_4_times() {
+    let board = BitBoard::from(0x000000000000000F);
+    assert_eq!(board.value(), board.rotate_90_cw().rotate_90_cw().rotate_90_cw().rotate_90_cw().value())
+}
+
+#[test]
+fn rotate_90_ccw() {
+    let board = BitBoard::from(0x0101010100000000);
+    assert_eq!(0x000000000000000F, board.rotate_90_ccw().value())
+}
+
+#[test]
+fn rotate_90_ccw_4_times() {
+    let board = BitBoard::from(0x000000000000000F);
+    assert_eq!(board.value(), board.rotate_90_ccw().rotate_90_ccw().rotate_90_ccw().rotate_90_ccw().value())
+}

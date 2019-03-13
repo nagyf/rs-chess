@@ -3,5 +3,7 @@ use crate::engine::board::BitBoard;
 pub mod engine;
 
 fn main() {
-    println!("{}", BitBoard::from(0x0000000000000080))
+    let board = BitBoard::from(0x000000000000000F);
+    println!("{}", board);
+    println!("{}", board.rotate_90_cw())
 }
