@@ -12,9 +12,6 @@ pub mod piece;
 pub mod square;
 pub mod chessmove;
 
-#[cfg(test)]
-mod tests;
-
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub struct Board {
     pub turn: Color,

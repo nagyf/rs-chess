@@ -1,8 +1,12 @@
-use std::fmt::{Display, Error, Formatter, Debug};
+use std::fmt::{Debug, Display, Error, Formatter};
 use std::ops::{BitAnd, BitOr, BitXor, Not, Shl, Shr};
 
+use crate::engine::board::square::{File, Rank};
+
 use super::constants;
-use crate::engine::board::square::{Rank, File};
+
+#[cfg(test)]
+mod tests;
 
 ///
 /// Bitboard implemented with Little endian rank-file (LERF) mapping
