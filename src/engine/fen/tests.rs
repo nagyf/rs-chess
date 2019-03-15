@@ -1,5 +1,6 @@
-use crate::engine::board::piece::{Color, CastlingRight};
+use crate::engine::board::piece::{Color, CastlingRight, Piece};
 use crate::engine::board::square::{Rank, File, Square};
+use crate::engine::fen;
 
 #[test]
 fn parse_half_moves() {
@@ -114,12 +115,18 @@ fn parse_pieces_error() {
 
 #[test]
 fn from_fen() {
-    let board = super::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1").unwrap();
+    let board = super::from_fen(fen::INITIAL_BOARD).unwrap();
     assert_eq!(0, board.half_moves);
     assert_eq!(1, board.full_moves);
     assert_eq!(Color::White, board.turn);
     assert_eq!([CastlingRight::BothSide, CastlingRight::BothSide], board.castling_rights);
     assert_eq!(None, board.en_passant);
+    assert_eq!(Piece::Pawn.initial_position(), board.get_pieces(Piece::Pawn));
+    assert_eq!(Piece::Rook.initial_position(), board.get_pieces(Piece::Rook));
+    assert_eq!(Piece::Knight.initial_position(), board.get_pieces(Piece::Knight));
+    assert_eq!(Piece::Bishop.initial_position(), board.get_pieces(Piece::Bishop));
+    assert_eq!(Piece::King.initial_position(), board.get_pieces(Piece::King));
+    assert_eq!(Piece::Queen.initial_position(), board.get_pieces(Piece::Queen));
 }
 
 #[test]

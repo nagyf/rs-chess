@@ -70,6 +70,13 @@ impl Color {
     pub fn to_index(&self) -> usize {
         *self as usize
     }
+
+    pub fn initial_position(&self) -> BitBoard {
+        match *self {
+            Color::Black => BitBoard::from(0xFFFF000000000000),
+            Color::White => BitBoard::from(0x000000000000FFFF),
+        }
+    }
 }
 
 impl Piece {

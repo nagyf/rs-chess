@@ -7,6 +7,8 @@ use crate::engine::board::piece::{CastlingRight, Color};
 #[cfg(test)]
 mod tests;
 
+pub const INITIAL_BOARD: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
 #[derive(Debug, Eq, PartialEq)]
 pub enum FENParseError {
     FENPiece(String),
