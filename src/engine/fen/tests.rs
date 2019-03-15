@@ -116,11 +116,11 @@ fn parse_pieces_error() {
 #[test]
 fn from_fen() {
     let board = super::from_fen(fen::INITIAL_BOARD).unwrap();
-    assert_eq!(0, board.half_moves);
-    assert_eq!(1, board.full_moves);
-    assert_eq!(Color::White, board.turn);
-    assert_eq!([CastlingRight::BothSide, CastlingRight::BothSide], board.castling_rights);
-    assert_eq!(None, board.en_passant);
+    assert_eq!(0, board.get_half_moves());
+    assert_eq!(1, board.get_full_moves());
+    assert_eq!(Color::White, board.get_turn());
+    assert_eq!([CastlingRight::BothSide, CastlingRight::BothSide], board.get_castling_rights());
+    assert_eq!(None, board.get_en_passant());
     assert_eq!(Piece::Pawn.initial_position(), board.get_pieces(Piece::Pawn));
     assert_eq!(Piece::Rook.initial_position(), board.get_pieces(Piece::Rook));
     assert_eq!(Piece::Knight.initial_position(), board.get_pieces(Piece::Knight));

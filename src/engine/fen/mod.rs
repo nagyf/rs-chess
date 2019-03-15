@@ -1,6 +1,6 @@
 use regex::Regex;
 
-use crate::engine::board::{Board, piece};
+use crate::engine::board::{Board, piece, BoardBuilder};
 use crate::engine::board::square::{File, Rank, Square};
 use crate::engine::board::piece::{CastlingRight, Color};
 
@@ -37,18 +37,18 @@ pub fn from_fen(input: &str) -> Result<Board, FENParseError> {
     let en_passant = parse_en_passant(parts[3])?;
     let half_moves = parse_half_moves(parts[4])?;
     let full_moves = parse_full_moves(parts[5])?;
-    let mut board = Board::empty();
-    board.turn = side_to_move;
-    board.half_moves = half_moves;
-    board.full_moves = full_moves;
-    board.en_passant = en_passant;
-    board.castling_rights = catling_rights;
+    let mut board_builder = BoardBuilder::new();
+    board_builder.set_turn(side_to_move);
+    board_builder.set_half_moves(half_moves);
+    board_builder.set_full_moves(full_moves);
+    board_builder.set_en_passant(en_passant);
+    board_builder.set_castling_rights(catling_rights);
 
     for piece in pieces {
-        board = board.add_piece(piece.piece_type, piece.color, piece.rank, piece.file);
+        board_builder.add_piece(piece.piece_type, piece.color, piece.rank, piece.file);
     }
 
-    Ok(board)
+    Ok(board_builder.build())
 }
 
 fn parse_pieces(input: &str) -> Result<Vec<FENPiece>, FENParseError> {
