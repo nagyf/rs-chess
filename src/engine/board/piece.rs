@@ -12,19 +12,20 @@ pub enum Piece {
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub enum Color {
-    Black,
-    White
+    Black = 0,
+    White = 1
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum CastlingRight {
-    WhiteQueenSide,
-    WhiteKingSide,
-    BlackQueenSide,
-    BlackKingSide
+    QueenSide,
+    KingSide,
+    BothSide,
+    NoRight
 }
 
 pub const NUM_PIECES: usize = 6;
+pub const NUM_COLORS: usize = 2;
 
 impl Display for Color {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
@@ -49,5 +50,31 @@ impl Display for Piece {
         };
 
         write!(f, "{}", piece)
+    }
+}
+
+impl Color {
+    pub fn to_index(&self) -> usize{
+        *self as usize
+    }
+}
+
+impl CastlingRight {
+    pub fn merge(&self, other: CastlingRight) -> CastlingRight {
+        match *self {
+            CastlingRight::NoRight => other,
+            CastlingRight::BothSide => *self,
+            _ => {
+                if *self == other {
+                    other
+                } else {
+                    match other {
+                        CastlingRight::QueenSide | CastlingRight::KingSide => CastlingRight::BothSide,
+                        CastlingRight::NoRight => *self,
+                        CastlingRight::BothSide => CastlingRight::BothSide
+                    }
+                }
+            }
+        }
     }
 }

@@ -4,6 +4,7 @@ use std::fmt::{Display, Error, Formatter};
 use crate::engine::board::bitboard::BitBoard;
 use crate::engine::board::square::{File, Rank, Square};
 use crate::engine::board::piece::{Color, CastlingRight};
+use crate::engine::board::piece::CastlingRight::{NoRight, BothSide};
 
 mod constants;
 pub mod bitboard;
@@ -20,7 +21,7 @@ pub struct Board {
     pub half_moves: u16,
     pub full_moves: u16,
     pub en_passant: Option<Square>,
-    pub castling_rights: Vec<CastlingRight>,
+    pub castling_rights: [CastlingRight; piece::NUM_COLORS],
     white: BitBoard,
     black: BitBoard,
     pieces: HashMap<piece::Piece, BitBoard>,
@@ -45,7 +46,7 @@ impl Board {
             half_moves: 0,
             full_moves: 0,
             en_passant: None,
-            castling_rights: Vec::new(),
+            castling_rights: [NoRight, NoRight],
             white: BitBoard::from(0x0000000000000000),
             black: BitBoard::from(0x0000000000000000),
             pieces,
@@ -69,7 +70,7 @@ impl Board {
             half_moves: 0,
             full_moves: 0,
             en_passant: None,
-            castling_rights: Vec::new(),
+            castling_rights: [BothSide, BothSide],
             white: BitBoard::from(0x000000000000FFFF),
             black: BitBoard::from(0xFFFF000000000000),
             pieces,

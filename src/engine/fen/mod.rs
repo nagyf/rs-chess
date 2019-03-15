@@ -2,7 +2,7 @@ use regex::Regex;
 
 use crate::engine::board::{Board, piece};
 use crate::engine::board::square::{File, Rank, Square};
-use crate::engine::board::piece::CastlingRight;
+use crate::engine::board::piece::{CastlingRight, Color};
 
 #[cfg(test)]
 mod tests;
@@ -165,22 +165,26 @@ fn parse_en_passant(input: &str) -> Result<Option<Square>, FENParseError> {
     }
 }
 
-fn parse_castling_rights(input: &str) -> Result<Vec<CastlingRight>, FENParseError> {
+fn parse_castling_rights(input: &str) -> Result<[CastlingRight; piece::NUM_COLORS], FENParseError> {
     let regex = Regex::new("^(-|[KkQq]+)$").unwrap();
 
-    if regex.is_match(input) {
-        let mut result = Vec::new();
+    let mut white = CastlingRight::NoRight;
+    let mut black = CastlingRight::NoRight;
 
+    if regex.is_match(input) {
         for ch in input.chars() {
             match ch {
-                'K' => result.push(CastlingRight::WhiteKingSide),
-                'Q' => result.push(CastlingRight::WhiteQueenSide),
-                'k' => result.push(CastlingRight::BlackKingSide),
-                'q' => result.push(CastlingRight::BlackQueenSide),
+                'K' => white = white.merge(CastlingRight::KingSide),
+                'Q' => white = white.merge(CastlingRight::QueenSide),
+                'k' => black = black.merge(CastlingRight::KingSide),
+                'q' => black = black.merge(CastlingRight::QueenSide),
                 _ => {}
             }
         }
 
+        let mut result: [CastlingRight; piece::NUM_COLORS] = [CastlingRight::NoRight, CastlingRight::NoRight];
+        result[Color::White.to_index()] = white;
+        result[Color::Black.to_index()] = black;
         Ok(result)
     } else {
         Err(FENParseError::FENCastlingAbility(format!("Unable to parse castling ability: {}", input)))

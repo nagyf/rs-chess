@@ -1,4 +1,4 @@
-use crate::engine::board::piece::Color;
+use crate::engine::board::piece::{Color, CastlingRight};
 use crate::engine::board::square::{Rank, File, Square};
 
 #[test]
@@ -40,13 +40,26 @@ fn parse_side_to_move_error() {
 #[test]
 fn parse_castling_rights() {
     let rights = super::parse_castling_rights("KkQq").unwrap();
-    assert_eq!(4, rights.len());
+    assert_eq!([CastlingRight::BothSide, CastlingRight::BothSide], rights);
+}
+
+#[test]
+fn parse_castling_rights_black() {
+    let rights = super::parse_castling_rights("kq").unwrap();
+    assert_eq!([CastlingRight::BothSide, CastlingRight::NoRight], rights);
+}
+
+#[test]
+fn parse_castling_rights_white() {
+    let rights = super::parse_castling_rights("KQ").unwrap();
+    assert_eq!([CastlingRight::NoRight, CastlingRight::BothSide], rights);
 }
 
 #[test]
 fn parse_castling_rights_empty() {
     let rights = super::parse_castling_rights("-").unwrap();
-    assert_eq!(0, rights.len());
+    assert_eq!(2, rights.len());
+    assert_eq!([CastlingRight::NoRight, CastlingRight::NoRight], rights);
 }
 
 #[test]
@@ -105,7 +118,7 @@ fn from_fen() {
     assert_eq!(0, board.half_moves);
     assert_eq!(1, board.full_moves);
     assert_eq!(Color::White, board.turn);
-    assert_eq!(4, board.castling_rights.len());
+    assert_eq!([CastlingRight::BothSide, CastlingRight::BothSide], board.castling_rights);
     assert_eq!(None, board.en_passant);
 }
 
