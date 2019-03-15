@@ -1,6 +1,7 @@
 use std::fmt::{Display, Error, Formatter};
 
 use crate::engine::board::bitboard::BitBoard;
+use crate::engine::board::chessmove::ChessMove;
 use crate::engine::board::piece::{CastlingRight, Color, Piece};
 use crate::engine::board::piece::CastlingRight::{BothSide, NoRight};
 use crate::engine::board::square::{File, Rank, Square};
@@ -78,6 +79,16 @@ impl Board {
         result.pieces[piece_type.to_index()] = self.pieces[piece_type.to_index()].set(rank, file);
         result.colors[color.to_index()] = result.colors[color.to_index()].set(rank, file);
         result
+    }
+
+    pub fn make_move(&self, _chess_move: ChessMove) -> Option<Board> {
+        // TODO implement chess movement
+        Some(*self)
+    }
+
+    pub fn is_legal(&self, _chess_move: ChessMove) -> bool {
+        // TODO implement move checking
+        true
     }
 }
 
