@@ -1,7 +1,7 @@
 use std::fmt::{Display, Error, Formatter};
 
 use crate::engine::board::bitboard::BitBoard;
-use crate::engine::board::piece::{CastlingRight, Color, Piece};
+use crate::engine::board::piece::{CastlingRight, Color};
 use crate::engine::board::piece::CastlingRight::{BothSide, NoRight};
 use crate::engine::board::square::{File, Rank, Square};
 
@@ -54,7 +54,7 @@ impl Board {
     pub fn new() -> Board {
         let mut pieces= [BitBoard::new(); piece::NUM_PIECES];
         for piece in &piece::ALL_PIECES {
-            pieces[piece.to_index()] = Board::initial_position(*piece);
+            pieces[piece.to_index()] = piece.initial_position();
         }
 
         Board {
@@ -69,45 +69,20 @@ impl Board {
         }
     }
 
-    fn initial_position(piece: Piece) -> BitBoard {
-        match piece {
-            Piece::Pawn => Board::pawns(),
-            Piece::Rook => Board::rooks(),
-            Piece::Knight => Board::knights(),
-            Piece::Bishop => Board::bishops(),
-            Piece::King => Board::kings(),
-            Piece::Queen => Board::queens(),
+    pub fn add_piece(&mut self, piece_type: piece::Piece, color: piece::Color, rank: Rank, file: File) -> Board {
+        let mut result = *self;
+        result.pieces[piece_type.to_index()] = self.pieces[piece_type.to_index()].set(rank, file);
+
+        match color {
+            Color::Black => {
+                result.black = self.black.set(rank, file);
+            }
+            Color::White => {
+                result.white = self.white.set(rank, file);
+            }
         }
-    }
 
-    /// Returns the bitboard representing the starting positions of pawns
-    fn pawns() -> BitBoard {
-        BitBoard::from(0x00FF00000000FF00)
-    }
-
-    /// Returns the bitboard representing the starting positions of rooks
-    fn rooks() -> BitBoard {
-        BitBoard::from(0x8100000000000081)
-    }
-
-    /// Returns the bitboard representing the starting positions of knights
-    fn knights() -> BitBoard {
-        BitBoard::from(0x4200000000000042)
-    }
-
-    /// Returns the bitboard representing the starting positions of bishops
-    fn bishops() -> BitBoard {
-        BitBoard::from(0x2400000000000024)
-    }
-
-    /// Returns the bitboard representing the starting positions of kings
-    fn kings() -> BitBoard {
-        BitBoard::from(0x1000000000000010)
-    }
-
-    /// Returns the bitboard representing the starting positions of queens
-    fn queens() -> BitBoard {
-        BitBoard::from(0x0800000000000008)
+        result
     }
 }
 
@@ -116,22 +91,5 @@ impl Display for Board {
         let board = self.white | self.black;
 
         write!(f, "{}", board)
-    }
-}
-
-impl Board {
-    pub fn add_piece_mut(&mut self, piece_type: piece::Piece, color: piece::Color, rank: Rank, file: File) -> &Board {
-        self.pieces[piece_type.to_index()] = self.pieces[piece_type.to_index()].set(rank, file);
-
-        match color {
-            Color::Black => {
-                self.black = self.black.set(rank, file);
-            }
-            Color::White => {
-                self.white = self.white.set(rank, file);
-            }
-        }
-
-        self
     }
 }

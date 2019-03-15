@@ -43,7 +43,7 @@ pub fn from_fen(input: &str) -> Result<Board, FENParseError> {
     board.castling_rights = catling_rights;
 
     for piece in pieces {
-        board.add_piece_mut(piece.piece_type, piece.color, piece.rank, piece.file);
+        board = board.add_piece(piece.piece_type, piece.color, piece.rank, piece.file);
     }
 
     Ok(board)
