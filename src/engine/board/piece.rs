@@ -1,7 +1,7 @@
 use std::fmt::{Display, Error, Formatter};
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
-pub enum Type {
+pub enum Piece {
     Pawn,
     Rook,
     Knight,
@@ -18,11 +18,13 @@ pub enum Color {
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum CastlingRight {
-    WhiteQueen,
-    WhiteKing,
-    BlackQueen,
-    BlackKing
+    WhiteQueenSide,
+    WhiteKingSide,
+    BlackQueenSide,
+    BlackKingSide
 }
+
+pub const NUM_PIECES: usize = 6;
 
 impl Display for Color {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
@@ -35,15 +37,15 @@ impl Display for Color {
     }
 }
 
-impl Display for Type {
+impl Display for Piece {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         let piece = match *self {
-            Type::Pawn => "P",
-            Type::Rook => "R",
-            Type::Knight => "N",
-            Type::Bishop => "B",
-            Type::King => "K",
-            Type::Queen => "Q",
+            Piece::Pawn => "P",
+            Piece::Rook => "R",
+            Piece::Knight => "N",
+            Piece::Bishop => "B",
+            Piece::King => "K",
+            Piece::Queen => "Q",
         };
 
         write!(f, "{}", piece)

@@ -1,7 +1,7 @@
 use regex::Regex;
 
-use crate::engine::board::{Board, field, piece};
-use crate::engine::board::field::{File, Rank};
+use crate::engine::board::{Board, piece};
+use crate::engine::board::square::{File, Rank, Square};
 use crate::engine::board::piece::CastlingRight;
 
 #[cfg(test)]
@@ -20,7 +20,7 @@ pub enum FENParseError {
 }
 
 struct FENPiece {
-    piece_type: piece::Type,
+    piece_type: piece::Piece,
     color: piece::Color,
     file: File,
     rank: Rank,
@@ -43,7 +43,7 @@ pub fn from_fen(input: &str) -> Result<Board, FENParseError> {
     board.castling_rights = catling_rights;
 
     for piece in pieces {
-        board.add_piece(piece.piece_type, piece.color, piece.rank, piece.file);
+        board.add_piece_mut(piece.piece_type, piece.color, piece.rank, piece.file);
     }
 
     Ok(board)
@@ -79,8 +79,8 @@ fn parse_rank(rank: &str, rank_num: u8) -> Result<Vec<FENPiece>, FENParseError> 
             pieces.push(FENPiece {
                 piece_type,
                 color,
-                file: field::number_as_file(file).unwrap(),
-                rank: field::number_as_rank(rank_num).unwrap(),
+                file: File::from_index(file).unwrap(),
+                rank: Rank::from_index(rank_num).unwrap(),
             });
             file += 1;
         } else {
@@ -91,14 +91,14 @@ fn parse_rank(rank: &str, rank_num: u8) -> Result<Vec<FENPiece>, FENParseError> 
     Ok(pieces)
 }
 
-fn parse_piece_type(input: &str) -> Result<piece::Type, FENParseError> {
+fn parse_piece_type(input: &str) -> Result<piece::Piece, FENParseError> {
     match input.to_ascii_lowercase().trim() {
-        "p" => Ok(piece::Type::Pawn),
-        "n" => Ok(piece::Type::Knight),
-        "b" => Ok(piece::Type::Bishop),
-        "r" => Ok(piece::Type::Rook),
-        "q" => Ok(piece::Type::Queen),
-        "k" => Ok(piece::Type::King),
+        "p" => Ok(piece::Piece::Pawn),
+        "n" => Ok(piece::Piece::Knight),
+        "b" => Ok(piece::Piece::Bishop),
+        "r" => Ok(piece::Piece::Rook),
+        "q" => Ok(piece::Piece::Queen),
+        "k" => Ok(piece::Piece::King),
         _ => Err(FENParseError::FENPieceType(format!("Unknown piece type: {}", input)))
     }
 }
@@ -121,7 +121,7 @@ fn parse_side_to_move(input: &str) -> Result<piece::Color, FENParseError> {
         "w" => Ok(piece::Color::White),
         "b" => Ok(piece::Color::Black),
         _ => {
-            let msg = format!("Unable to parse side to move: {}", input);
+            let msg = format!("Unable to parse side to chessmove: {}", input);
             Err(FENParseError::FENSideToMove(msg))
         }
     }
@@ -133,7 +133,7 @@ fn parse_half_moves(input: &str) -> Result<u16, FENParseError> {
     if regex.is_match(input) {
         Ok(input.parse().unwrap())
     } else {
-        Err(FENParseError::FENHalfMove(format!("Unable to parse half move clock: {}", input)))
+        Err(FENParseError::FENHalfMove(format!("Unable to parse half chessmove clock: {}", input)))
     }
 }
 
@@ -143,11 +143,11 @@ fn parse_full_moves(input: &str) -> Result<u16, FENParseError> {
     if regex.is_match(input) {
         Ok(input.parse().unwrap())
     } else {
-        Err(FENParseError::FENFullMove(format!("Unable to parse full move clock: {}", input)))
+        Err(FENParseError::FENFullMove(format!("Unable to parse full chessmove clock: {}", input)))
     }
 }
 
-fn parse_en_passant(input: &str) -> Result<Option<(field::Rank, field::File)>, FENParseError> {
+fn parse_en_passant(input: &str) -> Result<Option<Square>, FENParseError> {
     let regex = Regex::new("^(-|[a-h][1-8])$").unwrap();
 
     if regex.is_match(input) {
@@ -155,9 +155,9 @@ fn parse_en_passant(input: &str) -> Result<Option<(field::Rank, field::File)>, F
             "-" => Ok(None),
             ss => {
                 let chars: Vec<char> = ss.chars().collect();
-                let rank = field::letter_as_rank(&chars.get(0).unwrap().to_string()).unwrap();
-                let file = field::number_as_file(chars.get(1).unwrap().to_string().parse().unwrap()).unwrap();
-                Ok(Some((rank, file)))
+                let rank = Rank::from_id(&chars.get(0).unwrap().to_string()).unwrap();
+                let file = File::from_index(chars.get(1).unwrap().to_string().parse().unwrap()).unwrap();
+                Ok(Some(Square::from_pos(rank, file)))
             }
         }
     } else {
@@ -173,10 +173,10 @@ fn parse_castling_rights(input: &str) -> Result<Vec<CastlingRight>, FENParseErro
 
         for ch in input.chars() {
             match ch {
-                'K' => result.push(CastlingRight::WhiteKing),
-                'Q' => result.push(CastlingRight::WhiteQueen),
-                'k' => result.push(CastlingRight::BlackKing),
-                'q' => result.push(CastlingRight::BlackQueen),
+                'K' => result.push(CastlingRight::WhiteKingSide),
+                'Q' => result.push(CastlingRight::WhiteQueenSide),
+                'k' => result.push(CastlingRight::BlackKingSide),
+                'q' => result.push(CastlingRight::BlackQueenSide),
                 _ => {}
             }
         }

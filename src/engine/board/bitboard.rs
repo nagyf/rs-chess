@@ -2,8 +2,7 @@ use std::fmt::{Display, Error, Formatter, Debug};
 use std::ops::{BitAnd, BitOr, BitXor, Not, Shl, Shr};
 
 use super::constants;
-use crate::engine::board::field;
-use crate::engine::board::field::{Rank, File};
+use crate::engine::board::square::{Rank, File};
 
 ///
 /// Bitboard implemented with Little endian rank-file (LERF) mapping
@@ -251,8 +250,8 @@ impl BitBoard {
     }
 
     fn square_index(rank: Rank, file: File) -> u64 {
-        let r = (field::rank_as_number(rank) - 1) as u64;
-        let f = (field::file_as_number(file) - 1) as u64;
+        let r = (rank.to_index() - 1) as u64;
+        let f = (file.to_index() - 1) as u64;
         8 * r + f
     }
 }

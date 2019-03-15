@@ -1,5 +1,5 @@
 use crate::engine::board::bitboard::BitBoard;
-use crate::engine::board::field::{Rank, File};
+use crate::engine::board::square::{Rank, File};
 
 #[test]
 fn new() {
@@ -358,18 +358,18 @@ fn rotate_90_ccw_4_times() {
 #[test]
 fn is_set() {
     let board = BitBoard::from(0x0000000000000001);
-    assert_eq!(true, board.is_set(Rank::A, File::F1));
-    assert_eq!(false, board.is_set(Rank::A, File::F2));
+    assert_eq!(true, board.is_set(Rank::A, File::First));
+    assert_eq!(false, board.is_set(Rank::A, File::Second));
 }
 
 #[test]
 fn set() {
     let board = BitBoard::empty();
-    assert_eq!(0x0000000000000100, board.set(Rank::B, File::F1).value());
+    assert_eq!(0x0000000000000100, board.set(Rank::B, File::First).value());
 }
 
 #[test]
 fn toggle() {
     let board = BitBoard::from(0x0000000000000100);
-    assert_eq!(BitBoard::empty().value(), board.toggle(Rank::B, File::F1).value());
+    assert_eq!(BitBoard::empty().value(), board.toggle(Rank::B, File::First).value());
 }

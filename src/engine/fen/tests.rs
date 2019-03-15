@@ -1,5 +1,5 @@
 use crate::engine::board::piece::Color;
-use crate::engine::board::field::{Rank, File};
+use crate::engine::board::square::{Rank, File, Square};
 
 #[test]
 fn parse_half_moves() {
@@ -58,7 +58,7 @@ fn parse_castling_rights_error() {
 #[test]
 fn parse_en_passant() {
     let result = super::parse_en_passant("e6").unwrap();
-    assert_eq!(Some((Rank::E, File::F6)), result);
+    assert_eq!(Some(Square::from_pos(Rank::E, File::Sixth)), result);
 }
 
 #[test]
@@ -90,7 +90,7 @@ fn parse_pieces_singleton() {
     let result = super::parse_pieces("7k/8/8/8/8/8/8/8").unwrap();
     assert_eq!(1, result.len());
     assert_eq!(Rank::H, result[0].rank);
-    assert_eq!(File::F8, result[0].file);
+    assert_eq!(File::Eighth, result[0].file);
 }
 
 #[test]

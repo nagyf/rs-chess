@@ -2,13 +2,14 @@ use std::collections::HashMap;
 use std::fmt::{Display, Error, Formatter};
 
 use crate::engine::board::bitboard::BitBoard;
-use crate::engine::board::field::{File, Rank};
+use crate::engine::board::square::{File, Rank, Square};
 use crate::engine::board::piece::{Color, CastlingRight};
 
 mod constants;
 pub mod bitboard;
 pub mod piece;
-pub mod field;
+pub mod square;
+pub mod chessmove;
 
 #[cfg(test)]
 mod tests;
@@ -18,22 +19,26 @@ pub struct Board {
     pub turn: piece::Color,
     pub half_moves: u16,
     pub full_moves: u16,
-    pub en_passant: Option<(field::Rank, field::File)>,
+    pub en_passant: Option<Square>,
     pub castling_rights: Vec<CastlingRight>,
     white: BitBoard,
     black: BitBoard,
-    pieces: HashMap<piece::Type, BitBoard>,
+    pieces: HashMap<piece::Piece, BitBoard>,
 }
 
 impl Board {
+
+    /// Constructs a completely empty board.
+    ///
+    /// If you want an initial board instead, use Board::new() or default()
     pub fn empty() -> Board {
         let mut pieces = HashMap::new();
-        pieces.insert(piece::Type::Pawn, BitBoard::empty());
-        pieces.insert(piece::Type::Rook, BitBoard::empty());
-        pieces.insert(piece::Type::Knight, BitBoard::empty());
-        pieces.insert(piece::Type::Bishop, BitBoard::empty());
-        pieces.insert(piece::Type::King, BitBoard::empty());
-        pieces.insert(piece::Type::Queen, BitBoard::empty());
+        pieces.insert(piece::Piece::Pawn, BitBoard::empty());
+        pieces.insert(piece::Piece::Rook, BitBoard::empty());
+        pieces.insert(piece::Piece::Knight, BitBoard::empty());
+        pieces.insert(piece::Piece::Bishop, BitBoard::empty());
+        pieces.insert(piece::Piece::King, BitBoard::empty());
+        pieces.insert(piece::Piece::Queen, BitBoard::empty());
 
         Board {
             turn: piece::Color::White,
@@ -47,14 +52,17 @@ impl Board {
         }
     }
 
+    /// Constructs a new board with every piece in it's initial position.
+    ///
+    /// If you want a completely empty board, use Board::empty() instead.
     pub fn new() -> Board {
         let mut pieces = HashMap::new();
-        pieces.insert(piece::Type::Pawn, Board::pawns());
-        pieces.insert(piece::Type::Rook, Board::rooks());
-        pieces.insert(piece::Type::Knight, Board::knights());
-        pieces.insert(piece::Type::Bishop, Board::bishops());
-        pieces.insert(piece::Type::King, Board::kings());
-        pieces.insert(piece::Type::Queen, Board::queens());
+        pieces.insert(piece::Piece::Pawn, Board::pawns());
+        pieces.insert(piece::Piece::Rook, Board::rooks());
+        pieces.insert(piece::Piece::Knight, Board::knights());
+        pieces.insert(piece::Piece::Bishop, Board::bishops());
+        pieces.insert(piece::Piece::King, Board::kings());
+        pieces.insert(piece::Piece::Queen, Board::queens());
 
         Board {
             turn: piece::Color::White,
@@ -108,7 +116,7 @@ impl Display for Board {
 }
 
 impl Board {
-    pub fn add_piece(&mut self, piece_type: piece::Type, color: piece::Color, rank: Rank, file: File) -> &Board {
+    pub fn add_piece_mut(&mut self, piece_type: piece::Piece, color: piece::Color, rank: Rank, file: File) -> &Board {
         match self.pieces.get(&piece_type) {
             None => {
                 self.pieces.insert(piece_type, BitBoard::empty().set(rank, file));
