@@ -1,19 +1,22 @@
 use std::fmt::{Display, Error, Formatter};
 
+#[cfg(test)]
+mod tests;
+
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub enum Piece {
-    Pawn,
+    Pawn = 0,
     Rook,
     Knight,
     Bishop,
     King,
-    Queen
+    Queen,
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub enum Color {
     Black = 0,
-    White = 1
+    White = 1,
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
@@ -21,11 +24,20 @@ pub enum CastlingRight {
     QueenSide,
     KingSide,
     BothSide,
-    NoRight
+    NoRight,
 }
 
 pub const NUM_PIECES: usize = 6;
 pub const NUM_COLORS: usize = 2;
+pub const ALL_COLORS: [Color; NUM_COLORS] = [Color::Black, Color::White];
+pub const ALL_PIECES: [Piece; NUM_PIECES] = [
+    Piece::Pawn,
+    Piece::Rook,
+    Piece::Knight,
+    Piece::Bishop,
+    Piece::King,
+    Piece::Queen
+];
 
 impl Display for Color {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
@@ -54,7 +66,13 @@ impl Display for Piece {
 }
 
 impl Color {
-    pub fn to_index(&self) -> usize{
+    pub fn to_index(&self) -> usize {
+        *self as usize
+    }
+}
+
+impl Piece {
+    pub fn to_index(&self) -> usize {
         *self as usize
     }
 }
