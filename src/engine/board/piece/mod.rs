@@ -1,5 +1,10 @@
 use std::fmt::{Display, Error, Formatter};
+
 use crate::engine::board::bitboard::BitBoard;
+
+pub mod pawn;
+pub mod knight;
+pub mod king;
 
 #[cfg(test)]
 mod tests;
@@ -16,8 +21,8 @@ pub enum Piece {
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub enum Color {
-    Black = 0,
-    White = 1,
+    White = 0,
+    Black = 1,
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
@@ -30,7 +35,7 @@ pub enum CastlingRight {
 
 pub const NUM_PIECES: usize = 6;
 pub const NUM_COLORS: usize = 2;
-pub const ALL_COLORS: [Color; NUM_COLORS] = [Color::Black, Color::White];
+pub const ALL_COLORS: [Color; NUM_COLORS] = [Color::White, Color::Black];
 pub const ALL_PIECES: [Piece; NUM_PIECES] = [
     Piece::Pawn,
     Piece::Rook,

@@ -47,13 +47,13 @@ fn parse_castling_rights() {
 #[test]
 fn parse_castling_rights_black() {
     let rights = super::parse_castling_rights("kq").unwrap();
-    assert_eq!([CastlingRight::BothSide, CastlingRight::NoRight], rights);
+    assert_eq!([CastlingRight::NoRight, CastlingRight::BothSide], rights);
 }
 
 #[test]
 fn parse_castling_rights_white() {
     let rights = super::parse_castling_rights("KQ").unwrap();
-    assert_eq!([CastlingRight::NoRight, CastlingRight::BothSide], rights);
+    assert_eq!([CastlingRight::BothSide, CastlingRight::NoRight], rights);
 }
 
 #[test]

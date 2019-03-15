@@ -1,19 +1,13 @@
 // TODO: remove this
 #![allow(unused)]
-pub static LIGHT_SQUARES: u64 = 0x55AA55AA55AA55AA;
-pub static DARK_SQUARES: u64 = 0xAA55AA55AA55AA55;
 
-pub static A_FILE: u64 = 0x0101010101010101;
-pub static NOT_A_FILE: u64 = !A_FILE;
+use crate::engine::board::bitboard::BitBoard;
 
-pub static H_FILE: u64 = 0x8080808080808080;
-pub static NOT_H_FILE: u64 = !H_FILE;
+pub static LIGHT_SQUARES: BitBoard = BitBoard(0x55AA55AA55AA55AA);
+pub static DARK_SQUARES: BitBoard = BitBoard(0xAA55AA55AA55AA55);
 
-pub static RANK_1ST: u64 = 0x00000000000000FF;
-pub static RANK_8TH: u64 = 0xFF00000000000000;
+pub static DIAGONAL_A1_H8: BitBoard = BitBoard(0x8040201008040201);
+pub static ANTIDIAGONAL_H1_A8: BitBoard = BitBoard(0x0102040810204080);
 
-pub static DIAGONAL_A1_H8: u64 = 0x8040201008040201;
-pub static ANTIDIAGONAL_H1_A8: u64 = 0x0102040810204080;
-
-pub static EMPTY: u64 = 0x00000000000000FF;
-pub static UNIVERSE: u64 = 0xFFFFFFFFFFFFFFFF;
+pub static EMPTY: BitBoard = BitBoard(0x00000000000000FF);
+pub static UNIVERSE: BitBoard = BitBoard(0xFFFFFFFFFFFFFFFF);

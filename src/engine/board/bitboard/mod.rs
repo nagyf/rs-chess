@@ -1,9 +1,8 @@
 use std::fmt::{Debug, Display, Error, Formatter};
 use std::ops::{BitAnd, BitOr, BitXor, Not, Shl, Shr};
 
-use crate::engine::board::square::{File, Rank};
-
-use super::constants;
+use crate::engine::board::square::{File, Rank, constants};
+use crate::engine::board::constants::UNIVERSE;
 
 #[cfg(test)]
 mod tests;
@@ -72,7 +71,7 @@ impl BitBoard {
 
     /// Creates a bitboard in which every bit is set to 1
     pub fn universe() -> Self {
-        Self::from(constants::UNIVERSE)
+        UNIVERSE
     }
 }
 

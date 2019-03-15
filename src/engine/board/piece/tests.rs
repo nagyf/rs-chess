@@ -4,8 +4,8 @@ mod color {
 
     #[test]
     fn to_index() {
-        assert_eq!(0, Color::Black.to_index());
-        assert_eq!(1, Color::White.to_index());
+        assert_eq!(0, Color::White.to_index());
+        assert_eq!(1, Color::Black.to_index());
     }
 }
 

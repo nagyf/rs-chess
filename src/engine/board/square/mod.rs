@@ -1,3 +1,5 @@
+pub mod constants;
+
 #[cfg(test)]
 mod tests;
 
@@ -93,7 +95,7 @@ impl Square {
         Square(index)
     }
 
-    pub fn from_pos(rank: Rank, file: File) -> Square{
+    pub fn from_pos(rank: Rank, file: File) -> Square {
         let rank = rank.to_index() - 1;
         let file = file.to_index() - 1;
         Square::new(rank * 8 + file)
