@@ -1,8 +1,8 @@
 use std::fmt::{Debug, Display, Error, Formatter};
-use std::ops::{BitAnd, BitOr, BitXor, Not, Shl, Shr};
+use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not, Shl, ShlAssign, Shr, ShrAssign};
 
-use crate::engine::board::square::{File, Rank, constants};
 use crate::engine::board::constants::UNIVERSE;
+use crate::engine::board::square::{constants, File, Rank, Square};
 
 #[cfg(test)]
 mod tests;
@@ -62,6 +62,10 @@ impl BitBoard {
     /// Creates a bitboard from a u64 value
     pub fn from(value: u64) -> Self {
         BitBoard(value)
+    }
+
+    pub fn from_square(square: Square) -> Self {
+        BitBoard::from(1u64 << square.to_index())
     }
 
     /// Creates an empty bitboard
@@ -323,10 +327,58 @@ impl Shl<usize> for BitBoard {
     }
 }
 
+impl ShlAssign<usize> for BitBoard {
+    fn shl_assign(&mut self, rhs: usize) {
+        self.0 <<= rhs;
+    }
+}
+
 impl Shr<usize> for BitBoard {
     type Output = BitBoard;
 
     fn shr(self, rhs: usize) -> Self::Output {
         BitBoard::from(self.0 >> rhs)
+    }
+}
+
+impl ShrAssign<usize> for BitBoard {
+    fn shr_assign(&mut self, rhs: usize) {
+        self.0 >>= rhs;
+    }
+}
+
+impl BitOrAssign<BitBoard> for BitBoard {
+    fn bitor_assign(&mut self, rhs: BitBoard) {
+        self.0 |= rhs.0;
+    }
+}
+
+impl BitOrAssign<u64> for BitBoard {
+    fn bitor_assign(&mut self, rhs: u64) {
+        self.0 |= rhs;
+    }
+}
+
+impl BitAndAssign<BitBoard> for BitBoard {
+    fn bitand_assign(&mut self, rhs: BitBoard) {
+        self.0 &= rhs.0;
+    }
+}
+
+impl BitAndAssign<u64> for BitBoard {
+    fn bitand_assign(&mut self, rhs: u64) {
+        self.0 &= rhs;
+    }
+}
+
+impl BitXorAssign<BitBoard> for BitBoard {
+    fn bitxor_assign(&mut self, rhs: BitBoard) {
+        self.0 ^= rhs.0;
+    }
+}
+
+impl BitXorAssign<u64> for BitBoard {
+    fn bitxor_assign(&mut self, rhs: u64) {
+        self.0 ^= rhs;
     }
 }

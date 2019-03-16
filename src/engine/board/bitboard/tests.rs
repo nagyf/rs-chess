@@ -1,5 +1,5 @@
 use crate::engine::board::bitboard::BitBoard;
-use crate::engine::board::square::{Rank, File};
+use crate::engine::board::square::{Rank, File, Square};
 
 #[test]
 fn new() {
@@ -11,6 +11,18 @@ fn new() {
 fn from() {
     let board = BitBoard::from(42);
     assert_eq!(42, board.value())
+}
+
+#[test]
+fn from_square() {
+    let board = BitBoard::from_square(Square::from_pos(Rank::A, File::First));
+    assert_eq!(0x0000000000000001, board.value())
+}
+
+#[test]
+fn from_square2() {
+    let board = BitBoard::from_square(Square::from_pos(Rank::H, File::Eighth));
+    assert_eq!(0x8000000000000000, board.value())
 }
 
 #[test]
@@ -99,10 +111,26 @@ fn and2() {
 }
 
 #[test]
+fn and_assign() {
+    let mut a = BitBoard::from(0x00000000000000FF);
+    let b = BitBoard::from(0x000000000000FFFF);
+    a &= b;
+    assert_eq!(a.value(), a.value())
+}
+
+#[test]
 fn and_u64() {
     let a = BitBoard::from(0x00000000000000FF);
     let b = 0x000000000000FFFF;
     assert_eq!(a.value(), (a & b).value())
+}
+
+#[test]
+fn and_u64_assign() {
+    let mut a = BitBoard::from(0x00000000000000FF);
+    let b = 0x000000000000FFFF;
+    a &= b;
+    assert_eq!(a.value(), a.value())
 }
 
 #[test]
@@ -119,10 +147,26 @@ fn or2() {
 }
 
 #[test]
+fn or_assign() {
+    let mut a = BitBoard::from(0x0000000000FF00FF);
+    let b = BitBoard::from(0x000000000000FFFF);
+    a |= b;
+    assert_eq!(0x0000000000FFFFFF, a.value())
+}
+
+#[test]
 fn or_u64() {
     let a = BitBoard::from(0x0000000000FF00FF);
     let b = 0x000000000000FFFF;
     assert_eq!(0x0000000000FFFFFF, (a | b).value())
+}
+
+#[test]
+fn or_u64_assign() {
+    let mut a = BitBoard::from(0x0000000000FF00FF);
+    let b = 0x000000000000FFFF;
+    a |= b;
+    assert_eq!(0x0000000000FFFFFF, a.value())
 }
 
 #[test]
@@ -139,10 +183,26 @@ fn xor2() {
 }
 
 #[test]
+fn xor_assign() {
+    let a = BitBoard::from(0x0000000000FF00FF);
+    let mut b = BitBoard::from(0x000000000000FFFF);
+    b ^= a;
+    assert_eq!(0x0000000000FFFF00, b.value())
+}
+
+#[test]
 fn xor_u64() {
     let a = BitBoard::from(0x0000000000FF00FF);
     let b = 0x000000000000FFFF;
     assert_eq!(0x0000000000FFFF00, (a ^ b).value())
+}
+
+#[test]
+fn xor_u64_assign() {
+    let mut a = BitBoard::from(0x0000000000FF00FF);
+    let b = 0x000000000000FFFF;
+    a ^= b;
+    assert_eq!(0x0000000000FFFF00, a.value())
 }
 
 #[test]
@@ -152,9 +212,23 @@ fn shl_usize() {
 }
 
 #[test]
+fn shl_usize_assign() {
+    let mut a = BitBoard::from(0x0000000000FF00FF);
+    a <<= 8;
+    assert_eq!(0x00000000FF00FF00, a.value())
+}
+
+#[test]
 fn shr_usize() {
     let a = BitBoard::from(0x00000000FF00FF00);
     assert_eq!(0x0000000000FF00FF, (a >> 8).value())
+}
+
+#[test]
+fn shr_usize_assign() {
+    let mut a = BitBoard::from(0x00000000FF00FF00);
+    a >>= 8;
+    assert_eq!(0x0000000000FF00FF, a.value())
 }
 
 #[test]

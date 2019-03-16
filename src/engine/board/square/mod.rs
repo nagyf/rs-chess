@@ -101,6 +101,10 @@ impl Square {
         Square::new(rank * 8 + file)
     }
 
+    pub fn to_index(&self) -> u64 {
+        self.0 as u64
+    }
+
     pub fn get_rank(&self) -> Rank {
         Rank::from_index(self.0 / 8 + 1).unwrap()
     }

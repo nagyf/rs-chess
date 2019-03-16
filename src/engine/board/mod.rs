@@ -2,7 +2,8 @@ use std::fmt::{Display, Error, Formatter};
 
 use crate::engine::board::bitboard::BitBoard;
 use crate::engine::board::chessmove::ChessMove;
-use crate::engine::board::piece::{CastlingRight, Color, Piece};
+use crate::engine::board::constants::EMPTY;
+use crate::engine::board::piece::{ALL_PIECES, CastlingRight, Color, Piece};
 use crate::engine::board::piece::CastlingRight::{BothSide, NoRight};
 use crate::engine::board::square::{File, Rank, Square};
 
@@ -66,23 +67,23 @@ impl Board {
     }
 
     pub fn get_turn(&self) -> Color {
-        return self.turn
+        return self.turn;
     }
 
     pub fn get_half_moves(&self) -> u16 {
-        return self.half_moves
+        return self.half_moves;
     }
 
     pub fn get_full_moves(&self) -> u16 {
-        return self.full_moves
+        return self.full_moves;
     }
 
     pub fn get_en_passant(&self) -> Option<Square> {
-        return self.en_passant
+        return self.en_passant;
     }
 
     pub fn get_castling_rights(&self) -> [CastlingRight; 2] {
-        return self.castling_rights
+        return self.castling_rights;
     }
 
     pub fn get_pieces(&self, piece: Piece) -> BitBoard {
@@ -100,14 +101,86 @@ impl Board {
         result
     }
 
-    pub fn make_move(&self, _chess_move: ChessMove) -> Option<Board> {
-        // TODO implement chess movement
-        Some(*self)
+    pub fn make_move(&self, chess_move: ChessMove) -> Option<Board> {
+        // Check if source is not empty
+        if !self.is_valid_move(&chess_move) {
+            return None;
+        }
+
+        let piece = self.piece_at(chess_move.get_source(), self.turn).unwrap();
+
+        // Check if the move is legal
+        if !self.is_legal_move(piece, &chess_move) {
+            return None;
+        }
+
+        let src = BitBoard::from_square(chess_move.get_source());
+        let dst = BitBoard::from_square(chess_move.get_destination());
+
+        // Create the result
+        let mut result = *self;
+        // Move the piece
+        result.xor(piece, self.turn, src);
+        result.xor(piece, self.turn, dst);
+
+        // If there was a capture, remove that piece
+        if let Some(captured) = self.piece_at(chess_move.get_destination(), !self.turn) {
+            result.xor(captured, !self.turn, dst);
+        }
+
+        result.half_moves += 1;
+        if result.turn == Color::Black {
+            result.full_moves += 1;
+        }
+        result.turn = !result.turn;
+        Some(result)
     }
 
-    pub fn is_legal(&self, _chess_move: ChessMove) -> bool {
+    pub fn pieces(&self) -> BitBoard {
+        self.colors[Color::White.to_index()] | self.colors[Color::Black.to_index()]
+    }
+
+    pub fn pieces_by_color(&self, color: Color) -> BitBoard {
+        self.colors[color.to_index()]
+    }
+
+    pub fn pieces_by_type(&self, piece: Piece) -> BitBoard {
+        self.pieces[piece.to_index()]
+    }
+
+    fn xor(&mut self, piece: Piece, color: Color, bb: BitBoard) {
+        self.colors[color.to_index()] ^= bb;
+        self.pieces[piece.to_index()] ^= bb;
+    }
+
+    fn is_valid_move(&self, chess_move: &ChessMove) -> bool {
+        let src = BitBoard::from_square(chess_move.get_source());
+        if self.pieces_by_color(self.turn) & src == EMPTY {
+            return false;
+        }
+
+        return true;
+    }
+
+    fn is_legal_move(&self, _piece: Piece, _chess_move: &ChessMove) -> bool {
         // TODO implement move checking
         true
+    }
+
+    pub fn piece_at(&self, square: Square, color: Color) -> Option<Piece> {
+        let pos = BitBoard::from_square(square);
+
+        if self.pieces_by_color(color) & pos == EMPTY {
+            None
+        } else {
+            for piece in &ALL_PIECES {
+                if self.pieces[piece.to_index()] & pos != EMPTY {
+                    return Some(*piece);
+                }
+            }
+
+            None
+        }
     }
 }
 

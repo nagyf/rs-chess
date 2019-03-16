@@ -1,4 +1,5 @@
 use std::fmt::{Display, Error, Formatter};
+use std::ops::Not;
 
 use crate::engine::board::bitboard::BitBoard;
 
@@ -80,6 +81,17 @@ impl Color {
         match *self {
             Color::Black => BitBoard::from(0xFFFF000000000000),
             Color::White => BitBoard::from(0x000000000000FFFF),
+        }
+    }
+}
+
+impl Not for Color {
+    type Output = Color;
+
+    fn not(self) -> Self::Output {
+        match self {
+            Color::White => Color::Black,
+            Color::Black => Color::White,
         }
     }
 }
