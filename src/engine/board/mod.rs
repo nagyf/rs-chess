@@ -90,8 +90,8 @@ impl Board {
         self.pieces[piece.to_index()]
     }
 
-    pub fn get_pieces_color(&self, piece: Piece) -> BitBoard {
-        self.pieces[piece.to_index()]
+    pub fn get_pieces_color(&self, piece: Piece, color: Color) -> BitBoard {
+        self.pieces[piece.to_index()] & self.colors[color.to_index()]
     }
 
     pub fn add_piece(&mut self, piece_type: Piece, color: Color, rank: Rank, file: File) -> Board {
