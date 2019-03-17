@@ -3,7 +3,7 @@ use std::fmt::{Display, Error, Formatter};
 use crate::engine::board::bitboard::BitBoard;
 use crate::engine::board::chessmove::ChessMove;
 use crate::engine::board::constants::EMPTY;
-use crate::engine::board::piece::{ALL_PIECES, CastlingRight, Color, Piece};
+use crate::engine::board::piece::{ALL_PIECES, CastlingRight, Color, king, knight, pawn, Piece};
 use crate::engine::board::piece::CastlingRight::{BothSide, NoRight};
 use crate::engine::board::square::{File, Rank, Square};
 
@@ -114,8 +114,8 @@ impl Board {
             return None;
         }
 
-        let src = BitBoard::from_square(chess_move.get_source());
-        let dst = BitBoard::from_square(chess_move.get_destination());
+        let src = chess_move.get_source().as_bb();
+        let dst = chess_move.get_destination().as_bb();
 
         // Create the result
         let mut result = *self;
@@ -140,8 +140,20 @@ impl Board {
         self.colors[Color::White.to_index()] | self.colors[Color::Black.to_index()]
     }
 
+    pub fn empty_bb(&self) -> BitBoard {
+        !self.pieces()
+    }
+
     pub fn pieces_by_color(&self, color: Color) -> BitBoard {
         self.colors[color.to_index()]
+    }
+
+    pub fn own_pieces(&self) -> BitBoard {
+        self.pieces_by_color(self.turn)
+    }
+
+    pub fn enemy_pieces(&self) -> BitBoard {
+        self.pieces_by_color(!self.turn)
     }
 
     pub fn pieces_by_type(&self, piece: Piece) -> BitBoard {
@@ -154,21 +166,53 @@ impl Board {
     }
 
     fn is_valid_move(&self, chess_move: &ChessMove) -> bool {
-        let src = BitBoard::from_square(chess_move.get_source());
-        if self.pieces_by_color(self.turn) & src == EMPTY {
+        let src = chess_move.get_source().as_bb();
+        let dst = chess_move.get_destination().as_bb();
+
+        // Make sure we have a piece at the source square
+        if self.own_pieces() & src == EMPTY {
             return false;
         }
 
-        return true;
-    }
+        // Make sure that the target square is not a king (you cannot capture kings)
+        if self.pieces_by_type(Piece::King) & dst != EMPTY {
+            return false;
+        }
 
-    fn is_legal_move(&self, _piece: Piece, _chess_move: &ChessMove) -> bool {
-        // TODO implement move checking
         true
     }
 
+    fn is_legal_move(&self, piece: Piece, chess_move: &ChessMove) -> bool {
+        match piece {
+            Piece::Pawn => {
+                let valid_moves = pawn::push_targets(self.turn,
+                                                     chess_move.get_source().as_bb(),
+                                                     self.empty_bb());
+                let valid_attacks = pawn::any_valid_attack(self.turn,
+                                                          chess_move.get_source().as_bb(),
+                                                          self.enemy_pieces());
+
+                (valid_moves | valid_attacks) & chess_move.get_destination().as_bb() != EMPTY
+            }
+            Piece::Knight => {
+                // Where the knight can move
+                let attack_targets = knight::attack_targets(chess_move.get_source().as_bb());
+                // Consider only the empty and the enemy occupied squares
+                let valid_moves = attack_targets & !self.own_pieces();
+                valid_moves & chess_move.get_destination().as_bb() != EMPTY
+            }
+            Piece::King => {
+                // TODO consider non-check squares
+                let attack_targets = king::attack_targets(chess_move.get_source().as_bb());
+                let valid_moves = attack_targets & !self.own_pieces();
+                valid_moves & chess_move.get_destination().as_bb() != EMPTY
+            }
+            _ => false
+        }
+    }
+
     pub fn piece_at(&self, square: Square, color: Color) -> Option<Piece> {
-        let pos = BitBoard::from_square(square);
+        let pos = square.as_bb();
 
         if self.pieces_by_color(color) & pos == EMPTY {
             None

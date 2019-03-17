@@ -1,3 +1,5 @@
+use crate::engine::board::bitboard::BitBoard;
+
 pub mod constants;
 
 #[cfg(test)]
@@ -103,6 +105,10 @@ impl Square {
 
     pub fn to_index(&self) -> u64 {
         self.0 as u64
+    }
+
+    pub fn as_bb(&self) -> BitBoard {
+        BitBoard::from_square(*self)
     }
 
     pub fn get_rank(&self) -> Rank {
