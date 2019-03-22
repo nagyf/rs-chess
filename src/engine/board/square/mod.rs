@@ -1,4 +1,5 @@
 use crate::engine::board::bitboard::BitBoard;
+use std::fmt::{Display, Formatter, Error};
 
 pub mod constants;
 
@@ -31,6 +32,23 @@ pub enum File {
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct Square(u8);
+
+impl Display for Rank {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        let rank = match *self {
+            Rank::A => "a",
+            Rank::B => "b",
+            Rank::C => "c",
+            Rank::D => "d",
+            Rank::E => "e",
+            Rank::F => "f",
+            Rank::G => "g",
+            Rank::H => "h",
+        };
+
+        write!(f, "{}", rank)
+    }
+}
 
 impl Rank {
     pub fn from_id(id: &str) -> Option<Rank> {
@@ -86,6 +104,23 @@ impl File {
     }
 }
 
+impl Display for File {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        let file = match *self {
+            File::First => "1",
+            File::Second => "2",
+            File::Third => "3",
+            File::Fourth => "4",
+            File::Fifth => "5",
+            File::Sixth => "6",
+            File::Seventh => "7",
+            File::Eighth => "8",
+        };
+
+        write!(f, "{}", file)
+    }
+}
+
 impl Default for Square {
     fn default() -> Self {
         Square::new(0)
@@ -103,6 +138,14 @@ impl Square {
         Square::new(rank * 8 + file)
     }
 
+    pub fn from_bb(bb: BitBoard) -> Square {
+        let b = bb.bit_scan_fw();
+        let rank: u8 = (b / 8) as u8;
+        let file: u8 = (b % 8) as u8;
+        Square::from_pos(Rank::from_index(rank + 1).unwrap(),
+                         File::from_index(file + 1).unwrap())
+    }
+
     pub fn to_index(&self) -> u64 {
         self.0 as u64
     }
@@ -117,5 +160,11 @@ impl Square {
 
     pub fn get_file(&self) -> File {
         File::from_index(self.0 % 8 + 1).unwrap()
+    }
+}
+
+impl Display for Square {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        write!(f, "{}{}", self.get_rank(), self.get_file())
     }
 }

@@ -1,7 +1,7 @@
 use std::fmt::{Debug, Display, Error, Formatter};
 use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not, Shl, ShlAssign, Shr, ShrAssign};
 
-use crate::engine::board::constants::UNIVERSE;
+use crate::engine::board::constants::{DEBRUJN_64, EMPTY, INDEX_64, UNIVERSE};
 use crate::engine::board::square::{constants, File, Rank, Square};
 
 #[cfg(test)]
@@ -254,6 +254,11 @@ impl BitBoard {
         let square_index = BitBoard::square_index(rank, file);
         let x: u64 = 1 << square_index;
         *self ^ x
+    }
+
+    pub fn bit_scan_fw(&self) -> u64 {
+        assert_ne!(*self, EMPTY);
+        INDEX_64[(((self.0 ^ (self.0 - 1)).wrapping_mul(DEBRUJN_64.0)) >> 58) as usize]
     }
 
     fn square_index(rank: Rank, file: File) -> u64 {

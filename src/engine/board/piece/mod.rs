@@ -3,6 +3,7 @@ use std::ops::Not;
 
 use crate::engine::board::bitboard::BitBoard;
 
+pub mod sliding;
 pub mod pawn;
 pub mod knight;
 pub mod king;
