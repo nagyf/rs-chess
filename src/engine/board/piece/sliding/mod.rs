@@ -1,9 +1,7 @@
 use crate::engine::board::bitboard::BitBoard;
-use crate::engine::board::constants::EMPTY;
 use crate::engine::board::piece::Piece;
-use crate::engine::board::square::constants::{FILE_A, FILE_H, RANK_1, RANK_8};
+use crate::engine::board::square::constants::{FILE_A};
 use crate::engine::board::square::Square;
-use std::os::raw::c_ushort;
 
 pub fn get_piece_attacks(piece: Piece, square: Square, occupied: BitBoard) -> BitBoard {
     match piece {
@@ -24,10 +22,6 @@ pub fn queen_attacks(square: Square, occupied: BitBoard) -> BitBoard {
 
 pub fn bishop_attacks(square: Square, occupied: BitBoard) -> BitBoard {
     diagonal_attacks(square, occupied) | anti_diagonal_attacks(square, occupied)
-}
-
-fn rank_mask(square: Square) -> BitBoard {
-    RANK_1 << ((square.to_index() & 56) as usize)
 }
 
 fn file_mask(square: Square) -> BitBoard {

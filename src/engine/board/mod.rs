@@ -3,7 +3,7 @@ use std::fmt::{Display, Error, Formatter};
 use crate::engine::board::bitboard::BitBoard;
 use crate::engine::board::chessmove::ChessMove;
 use crate::engine::board::constants::EMPTY;
-use crate::engine::board::piece::{ALL_PIECES, CastlingRight, Color, king, knight, pawn, Piece};
+use crate::engine::board::piece::{ALL_PIECES, CastlingRight, Color, king, knight, pawn, Piece, sliding};
 use crate::engine::board::piece::CastlingRight::{BothSide, NoRight};
 use crate::engine::board::square::{File, Rank, Square};
 
@@ -207,7 +207,10 @@ impl Board {
                 let valid_moves = attack_targets & !self.own_pieces();
                 valid_moves & chess_move.get_destination().as_bb() != EMPTY
             }
-            _ => false
+            _ => {
+                let attack_targets = sliding::get_piece_attacks(piece, chess_move.get_source(), self.pieces());
+                (attack_targets ^ self.own_pieces()) & chess_move.get_destination().as_bb() != EMPTY
+            }
         }
     }
 
