@@ -14,18 +14,6 @@ fn from() {
 }
 
 #[test]
-fn from_square() {
-    let board = BitBoard::from_square(Square::from_pos(Rank::A, File::First));
-    assert_eq!(0x0000000000000001, board.value())
-}
-
-#[test]
-fn from_square2() {
-    let board = BitBoard::from_square(Square::from_pos(Rank::H, File::Eighth));
-    assert_eq!(0x8000000000000000, board.value())
-}
-
-#[test]
 fn default() {
     let board: BitBoard = Default::default();
     assert_eq!(0, board.value())
@@ -432,18 +420,18 @@ fn rotate_90_ccw_4_times() {
 #[test]
 fn is_set() {
     let board = BitBoard::from(0x0000000000000001);
-    assert_eq!(true, board.is_set(Rank::A, File::First));
-    assert_eq!(false, board.is_set(Rank::A, File::Second));
+    assert_eq!(true, board.is_set(Square::from_pos(Rank::A, File::First)));
+    assert_eq!(false, board.is_set(Square::from_pos(Rank::A, File::Second)));
 }
 
 #[test]
 fn set() {
     let board = BitBoard::empty();
-    assert_eq!(0x0000000000000100, board.set(Rank::B, File::First).value());
+    assert_eq!(0x0000000000000100, board.set(Square::from_pos(Rank::B, File::First)).value());
 }
 
 #[test]
 fn toggle() {
     let board = BitBoard::from(0x0000000000000100);
-    assert_eq!(BitBoard::empty().value(), board.toggle(Rank::B, File::First).value());
+    assert_eq!(BitBoard::empty().value(), board.toggle(Square::from_pos(Rank::B, File::First)).value());
 }

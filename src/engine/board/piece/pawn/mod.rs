@@ -2,8 +2,8 @@
 #![allow(unused)]
 
 use crate::engine::board::bitboard::BitBoard;
-use crate::engine::board::piece::Color;
-use crate::engine::board::square::constants::{RANK_4, RANK_5};
+use crate::engine::board::square::constants::{RANK_D, RANK_E};
+use crate::engine::board::piece::color::Color;
 
 pub fn push_targets(color: Color, pawns: BitBoard, empty: BitBoard) -> BitBoard {
     match color {
@@ -50,7 +50,7 @@ fn single_push_targets_white(pawns: BitBoard, empty: BitBoard) -> BitBoard {
 
 fn double_push_targets_white(pawns: BitBoard, empty: BitBoard) -> BitBoard {
     let single_pushes = single_push_targets_white(pawns, empty);
-    single_pushes.north_one() & empty & RANK_4
+    single_pushes.north_one() & empty & RANK_D
 }
 
 fn single_push_targets_black(pawns: BitBoard, empty: BitBoard) -> BitBoard {
@@ -59,7 +59,7 @@ fn single_push_targets_black(pawns: BitBoard, empty: BitBoard) -> BitBoard {
 
 fn double_push_targets_black(pawns: BitBoard, empty: BitBoard) -> BitBoard {
     let single_pushes = single_push_targets_black(pawns, empty);
-    single_pushes.south_one() & empty & RANK_5
+    single_pushes.south_one() & empty & RANK_E
 }
 
 fn able_to_push_white(pawns: BitBoard, empty: BitBoard) -> BitBoard {
@@ -67,7 +67,7 @@ fn able_to_push_white(pawns: BitBoard, empty: BitBoard) -> BitBoard {
 }
 
 fn able_to_double_push_white(pawns: BitBoard, empty: BitBoard) -> BitBoard {
-    let empty_rank_3 = (empty & RANK_4).south_one() & empty;
+    let empty_rank_3 = (empty & RANK_D).south_one() & empty;
     able_to_push_white(pawns, empty_rank_3)
 }
 
@@ -76,7 +76,7 @@ fn able_to_push_black(pawns: BitBoard, empty: BitBoard) -> BitBoard {
 }
 
 fn able_to_double_push_black(pawns: BitBoard, empty: BitBoard) -> BitBoard {
-    let empty_rank_6 = (empty & RANK_5).north_one() & empty;
+    let empty_rank_6 = (empty & RANK_E).north_one() & empty;
     able_to_push_black(pawns, empty_rank_6)
 }
 

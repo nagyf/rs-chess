@@ -2,7 +2,7 @@ use std::fmt::{Debug, Display, Error, Formatter};
 use std::ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Not, Shl, ShlAssign, Shr, ShrAssign};
 
 use crate::engine::board::constants::{DEBRUJN_64, EMPTY, INDEX_64, UNIVERSE};
-use crate::engine::board::square::{constants, File, Rank, Square};
+use crate::engine::board::square::{constants, Square};
 
 #[cfg(test)]
 mod tests;
@@ -64,10 +64,6 @@ impl BitBoard {
         BitBoard(value)
     }
 
-    pub fn from_square(square: Square) -> Self {
-        BitBoard::from(1u64 << square.to_index())
-    }
-
     /// Creates an empty bitboard
     pub fn empty() -> Self {
         Self::new()
@@ -109,27 +105,27 @@ impl BitBoard {
     }
 
     pub fn east_one(&self) -> BitBoard {
-        (*self << 1) & constants::NOT_A_FILE
+        (*self << 1) & constants::NOT_1_FILE
     }
 
     pub fn no_ea_one(&self) -> BitBoard {
-        (*self << 9) & constants::NOT_A_FILE
+        (*self << 9) & constants::NOT_1_FILE
     }
 
     pub fn so_ea_one(&self) -> BitBoard {
-        (*self >> 7) & constants::NOT_A_FILE
+        (*self >> 7) & constants::NOT_1_FILE
     }
 
     pub fn west_one(&self) -> BitBoard {
-        (*self >> 1) & constants::NOT_H_FILE
+        (*self >> 1) & constants::NOT_8_FILE
     }
 
     pub fn so_we_one(&self) -> BitBoard {
-        (*self >> 9) & constants::NOT_H_FILE
+        (*self >> 9) & constants::NOT_8_FILE
     }
 
     pub fn no_we_one(&self) -> BitBoard {
-        (*self << 7) & constants::NOT_H_FILE
+        (*self << 7) & constants::NOT_8_FILE
     }
 
     pub fn rotate_left(&self, steps: usize) -> BitBoard {
@@ -238,33 +234,22 @@ impl BitBoard {
         self.flip_vertical().flip_diag_a1_h8()
     }
 
-    pub fn is_set(&self, rank: Rank, file: File) -> bool {
-        let square_index = BitBoard::square_index(rank, file);
-        let x: u64 = 1 << square_index;
-        (*self & x).value() != 0
+    pub fn is_set(&self, square: Square) -> bool {
+        (*self & square.as_bb()).value() != 0
     }
 
-    pub fn set(&self, rank: Rank, file: File) -> BitBoard {
-        let square_index = BitBoard::square_index(rank, file);
-        let x: u64 = 1 << square_index;
-        *self | x
+    pub fn set(&self, square: Square) -> BitBoard {
+        *self | square.as_bb()
     }
 
-    pub fn toggle(&self, rank: Rank, file: File) -> BitBoard {
-        let square_index = BitBoard::square_index(rank, file);
-        let x: u64 = 1 << square_index;
-        *self ^ x
+    pub fn toggle(&self, square: Square) -> BitBoard {
+        *self ^ square.as_bb()
     }
 
+    /// Finds the LSB that is 1
     pub fn bit_scan_fw(&self) -> u64 {
         assert_ne!(*self, EMPTY);
         INDEX_64[(((self.0 ^ (self.0 - 1)).wrapping_mul(DEBRUJN_64.0)) >> 58) as usize]
-    }
-
-    fn square_index(rank: Rank, file: File) -> u64 {
-        let r = (rank.to_index() - 1) as u64;
-        let f = (file.to_index() - 1) as u64;
-        8 * r + f
     }
 }
 

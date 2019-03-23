@@ -4,21 +4,21 @@ mod rank_test {
 
     #[test]
     fn from_id() {
-        assert_eq!(Some(Rank::A), Rank::from_id("a"));
-        assert_eq!(Some(Rank::B), Rank::from_id("b"));
-        assert_eq!(Some(Rank::C), Rank::from_id("c"));
-        assert_eq!(Some(Rank::D), Rank::from_id("d"));
-        assert_eq!(Some(Rank::E), Rank::from_id("e"));
-        assert_eq!(Some(Rank::F), Rank::from_id("f"));
-        assert_eq!(Some(Rank::G), Rank::from_id("g"));
-        assert_eq!(Some(Rank::H), Rank::from_id("h"));
+        assert_eq!(Some(Rank::A), Rank::from_string("a"));
+        assert_eq!(Some(Rank::B), Rank::from_string("b"));
+        assert_eq!(Some(Rank::C), Rank::from_string("c"));
+        assert_eq!(Some(Rank::D), Rank::from_string("d"));
+        assert_eq!(Some(Rank::E), Rank::from_string("e"));
+        assert_eq!(Some(Rank::F), Rank::from_string("f"));
+        assert_eq!(Some(Rank::G), Rank::from_string("g"));
+        assert_eq!(Some(Rank::H), Rank::from_string("h"));
     }
 
     #[test]
     fn from_id_err() {
-        assert_eq!(None, Rank::from_id(""));
-        assert_eq!(None, Rank::from_id("i"));
-        assert_eq!(None, Rank::from_id("1"));
+        assert_eq!(None, Rank::from_string(""));
+        assert_eq!(None, Rank::from_string("i"));
+        assert_eq!(None, Rank::from_string("1"));
     }
 
     #[test]
@@ -90,6 +90,7 @@ mod file_test {
 #[cfg(test)]
 mod square_test {
     use crate::engine::board::square::{File, Rank, Square};
+    use crate::engine::board::bitboard::BitBoard;
 
     #[test]
     fn square_default() {
@@ -102,10 +103,28 @@ mod square_test {
     }
 
     #[test]
+    #[should_panic]
+    fn new_panic() {
+        Square::new(64);
+    }
+
+    #[test]
     fn from_pos() {
         assert_eq!(0, Square::from_pos(Rank::A, File::First).0);
         assert_eq!(8, Square::from_pos(Rank::B, File::First).0);
         assert_eq!(63, Square::from_pos(Rank::H, File::Eighth).0);
+    }
+
+    #[test]
+    fn from_bb() {
+        let sq = Square::from_bb(BitBoard::from(0x0000000000000001));
+        assert_eq!(sq.0, 0);
+    }
+
+    #[test]
+    fn from_bb2() {
+        let sq = Square::from_bb(BitBoard::from(0x8000000000000000));
+        assert_eq!(sq.0, 63);
     }
 
     #[test]
@@ -118,5 +137,29 @@ mod square_test {
     fn get_file() {
         assert_eq!(File::First, Square::from_pos(Rank::A, File::First).get_file());
         assert_eq!(File::Eighth, Square::from_pos(Rank::H, File::Eighth).get_file());
+    }
+
+    #[test]
+    fn as_bb() {
+        let board = Square::from_pos(Rank::A, File::First).as_bb();
+        assert_eq!(0x0000000000000001, board.value());
+    }
+
+    #[test]
+    fn as_bb2() {
+        let board = Square::from_pos(Rank::H, File::Eighth).as_bb();
+        assert_eq!(0x8000000000000000, board.value());
+    }
+
+    #[test]
+    fn to_index() {
+        let square = Square::from_pos(Rank::A, File::First);
+        assert_eq!(0, square.to_index());
+    }
+
+    #[test]
+    fn to_index2() {
+        let square = Square::from_pos(Rank::H, File::Eighth);
+        assert_eq!(63, square.to_index());
     }
 }

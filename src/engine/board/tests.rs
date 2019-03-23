@@ -1,6 +1,8 @@
 use crate::engine::board::bitboard::BitBoard;
 use crate::engine::board::Board;
-use crate::engine::board::piece::{CastlingRight, Color, Piece};
+use crate::engine::board::piece::{Piece};
+use crate::engine::board::piece::color::Color;
+use crate::engine::board::piece::castling::CastlingRight;
 
 //
 // Empty board

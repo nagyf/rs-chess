@@ -3,9 +3,10 @@ use std::fmt::{Display, Error, Formatter};
 use crate::engine::board::bitboard::BitBoard;
 use crate::engine::board::chessmove::ChessMove;
 use crate::engine::board::constants::EMPTY;
-use crate::engine::board::piece::{ALL_PIECES, CastlingRight, Color, king, knight, pawn, Piece, sliding};
-use crate::engine::board::piece::CastlingRight::{BothSide, NoRight};
-use crate::engine::board::square::{File, Rank, Square};
+use crate::engine::board::piece::{ALL_PIECES, king, knight, pawn, Piece, sliding, color};
+use crate::engine::board::square::{Square};
+use crate::engine::board::piece::color::Color;
+use crate::engine::board::piece::castling::CastlingRight;
 
 mod constants;
 pub mod bitboard;
@@ -21,8 +22,8 @@ pub struct Board {
     half_moves: u16,
     full_moves: u16,
     en_passant: Option<Square>,
-    castling_rights: [CastlingRight; piece::NUM_COLORS],
-    colors: [BitBoard; piece::NUM_COLORS],
+    castling_rights: [CastlingRight; color::NUM_COLORS],
+    colors: [BitBoard; color::NUM_COLORS],
     pieces: [BitBoard; piece::NUM_PIECES],
 }
 
@@ -36,8 +37,8 @@ impl Board {
             half_moves: 0,
             full_moves: 0,
             en_passant: None,
-            castling_rights: [NoRight, NoRight],
-            colors: [BitBoard::new(); piece::NUM_COLORS],
+            castling_rights: [CastlingRight::NoRight, CastlingRight::NoRight],
+            colors: [BitBoard::new(); color::NUM_COLORS],
             pieces: [BitBoard::new(); piece::NUM_PIECES],
         }
     }
@@ -51,7 +52,7 @@ impl Board {
             pieces[piece.to_index()] = piece.initial_position();
         }
 
-        let mut colors = [BitBoard::new(); piece::NUM_COLORS];
+        let mut colors = [BitBoard::new(); color::NUM_COLORS];
         colors[Color::White.to_index()] = Color::White.initial_position();
         colors[Color::Black.to_index()] = Color::Black.initial_position();
 
@@ -60,7 +61,7 @@ impl Board {
             half_moves: 0,
             full_moves: 1,
             en_passant: None,
-            castling_rights: [BothSide, BothSide],
+            castling_rights: [CastlingRight::BothSide, CastlingRight::BothSide],
             colors,
             pieces,
         }
@@ -94,10 +95,10 @@ impl Board {
         self.pieces[piece.to_index()] & self.colors[color.to_index()]
     }
 
-    pub fn add_piece(&mut self, piece_type: Piece, color: Color, rank: Rank, file: File) -> Board {
+    pub fn add_piece(&mut self, piece_type: Piece, color: Color, square: Square) -> Board {
         let mut result = *self;
-        result.pieces[piece_type.to_index()] = self.pieces[piece_type.to_index()].set(rank, file);
-        result.colors[color.to_index()] = result.colors[color.to_index()].set(rank, file);
+        result.pieces[piece_type.to_index()] = self.pieces[piece_type.to_index()].set(square);
+        result.colors[color.to_index()] = result.colors[color.to_index()].set(square);
         result
     }
 
@@ -234,7 +235,7 @@ impl Board {
 impl Display for Board {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         let mut board = BitBoard::new();
-        for color in &piece::ALL_COLORS {
+        for color in &color::ALL_COLORS {
             board = board | self.colors[color.to_index()];
         }
 
@@ -248,8 +249,8 @@ pub struct BoardBuilder {
     half_moves: u16,
     full_moves: u16,
     en_passant: Option<Square>,
-    castling_rights: [CastlingRight; piece::NUM_COLORS],
-    colors: [BitBoard; piece::NUM_COLORS],
+    castling_rights: [CastlingRight; color::NUM_COLORS],
+    colors: [BitBoard; color::NUM_COLORS],
     pieces: [BitBoard; piece::NUM_PIECES],
 }
 
@@ -260,8 +261,8 @@ impl BoardBuilder {
             half_moves: 0,
             full_moves: 0,
             en_passant: None,
-            castling_rights: [NoRight, NoRight],
-            colors: [BitBoard::new(); piece::NUM_COLORS],
+            castling_rights: [CastlingRight::NoRight, CastlingRight::NoRight],
+            colors: [BitBoard::new(); color::NUM_COLORS],
             pieces: [BitBoard::new(); piece::NUM_PIECES],
         }
     }
@@ -301,9 +302,9 @@ impl BoardBuilder {
         self
     }
 
-    pub fn add_piece(&mut self, piece_type: Piece, color: Color, rank: Rank, file: File) -> &mut BoardBuilder {
-        self.pieces[piece_type.to_index()] = self.pieces[piece_type.to_index()].set(rank, file);
-        self.colors[color.to_index()] = self.colors[color.to_index()].set(rank, file);
+    pub fn add_piece(&mut self, piece_type: Piece, color: Color, square: Square) -> &mut BoardBuilder {
+        self.pieces[piece_type.to_index()] = self.pieces[piece_type.to_index()].set(square);
+        self.colors[color.to_index()] = self.colors[color.to_index()].set(square);
         self
     }
 

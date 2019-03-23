@@ -6,6 +6,7 @@ pub mod constants;
 #[cfg(test)]
 mod tests;
 
+/// Represents the rank (the rows) of the chessboard
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum Rank {
     A = 1,
@@ -18,6 +19,7 @@ pub enum Rank {
     H,
 }
 
+/// Represents the file (the columns) of the chessboard
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum File {
     First = 1,
@@ -30,6 +32,7 @@ pub enum File {
     Eighth,
 }
 
+/// Represents a square on the chessboard
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct Square(u8);
 
@@ -51,8 +54,9 @@ impl Display for Rank {
 }
 
 impl Rank {
-    pub fn from_id(id: &str) -> Option<Rank> {
-        match id {
+    /// Converts a string to a Rank. Only "a".."h" values are allowed.
+    pub fn from_string(id: &str) -> Option<Rank> {
+        match id.to_lowercase().trim().as_ref() {
             "a" => Some(Rank::A),
             "b" => Some(Rank::B),
             "c" => Some(Rank::C),
@@ -65,6 +69,7 @@ impl Rank {
         }
     }
 
+    /// Converts an integer to a Rank, only 1..8 values are allowed.
     pub fn from_index(index: u8) -> Option<Rank> {
         match index {
             1 => Some(Rank::A),
@@ -79,12 +84,14 @@ impl Rank {
         }
     }
 
+    /// Converts the Rank to integer, values returned are in the 1..8 range.
     pub fn to_index(&self) -> u8 {
         *self as u8
     }
 }
 
 impl File {
+    /// Converts an integer to a File, only values 1..8 are allowed.
     pub fn from_index(index: u8) -> Option<File> {
         match index {
             1 => Some(File::First),
@@ -99,6 +106,7 @@ impl File {
         }
     }
 
+    /// Converts the File to integer, values returned are in the 1..8 range.
     pub fn to_index(&self) -> u8 {
         *self as u8
     }
@@ -128,36 +136,48 @@ impl Default for Square {
 }
 
 impl Square {
+
+    /// Creates a new index using the specified raw value. Accepts values between 0..63
     pub fn new(index: u8) -> Square {
+        if index > 63 {
+            panic!(format!("Invalid square value: {}!", index))
+        }
+
         Square(index)
     }
 
+    /// Returns a square for the specified rank and file
     pub fn from_pos(rank: Rank, file: File) -> Square {
         let rank = rank.to_index() - 1;
         let file = file.to_index() - 1;
         Square::new(rank * 8 + file)
     }
 
+    /// Converts a Bitboard to a square.
     pub fn from_bb(bb: BitBoard) -> Square {
-        let b = bb.bit_scan_fw();
-        let rank: u8 = (b / 8) as u8;
-        let file: u8 = (b % 8) as u8;
-        Square::from_pos(Rank::from_index(rank + 1).unwrap(),
-                         File::from_index(file + 1).unwrap())
+        let value_index = bb.bit_scan_fw();
+        let rank: u8 = (value_index / 8) as u8 + 1;
+        let file: u8 = (value_index % 8) as u8 + 1;
+        Square::from_pos(Rank::from_index(rank).unwrap(),
+                         File::from_index(file).unwrap())
     }
 
+    /// Returns the raw value, the index of the square. Can be a value between 0..63
     pub fn to_index(&self) -> u64 {
         self.0 as u64
     }
 
+    /// Converts the square to a bitboard in which the only 1 bit will be the square itself
     pub fn as_bb(&self) -> BitBoard {
-        BitBoard::from_square(*self)
+        BitBoard::from(1u64 << self.to_index())
     }
 
+    /// Returns the rank of this square
     pub fn get_rank(&self) -> Rank {
         Rank::from_index(self.0 / 8 + 1).unwrap()
     }
 
+    /// Returns the file of this square
     pub fn get_file(&self) -> File {
         File::from_index(self.0 % 8 + 1).unwrap()
     }

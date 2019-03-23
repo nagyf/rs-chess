@@ -1,6 +1,8 @@
-use crate::engine::board::piece::{Color, CastlingRight, Piece};
+use crate::engine::board::piece::Piece;
 use crate::engine::board::square::{Rank, File, Square};
 use crate::engine::fen;
+use crate::engine::board::piece::color::Color;
+use crate::engine::board::piece::castling::CastlingRight;
 
 #[test]
 fn parse_half_moves() {
@@ -103,8 +105,8 @@ fn parse_pieces_starting_position() {
 fn parse_pieces_singleton() {
     let result = super::parse_pieces("7k/8/8/8/8/8/8/8").unwrap();
     assert_eq!(1, result.len());
-    assert_eq!(Rank::H, result[0].rank);
-    assert_eq!(File::Eighth, result[0].file);
+    assert_eq!(Rank::H, result[0].square.get_rank());
+    assert_eq!(File::Eighth, result[0].square.get_file());
 }
 
 #[test]

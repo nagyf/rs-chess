@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod color {
-    use crate::engine::board::piece::Color;
+    use crate::engine::board::piece::color::Color;
 
     #[test]
     fn to_index() {
@@ -26,7 +26,7 @@ mod piece {
 
 #[cfg(test)]
 mod castling_right {
-    use crate::engine::board::piece::CastlingRight;
+    use crate::engine::board::piece::castling::CastlingRight;
 
     #[test]
     fn no_no() {

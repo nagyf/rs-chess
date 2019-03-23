@@ -1,8 +1,10 @@
 use regex::Regex;
 
-use crate::engine::board::{Board, piece, BoardBuilder};
+use crate::engine::board::{Board, BoardBuilder};
 use crate::engine::board::square::{File, Rank, Square};
-use crate::engine::board::piece::{CastlingRight, Color};
+use crate::engine::board::piece::castling::CastlingRight;
+use crate::engine::board::piece::color::Color;
+use crate::engine::board::piece::{Piece, color};
 
 #[cfg(test)]
 mod tests;
@@ -22,10 +24,9 @@ pub enum FENParseError {
 }
 
 struct FENPiece {
-    piece_type: piece::Piece,
-    color: piece::Color,
-    file: File,
-    rank: Rank,
+    piece_type: Piece,
+    color: Color,
+    square: Square
 }
 
 /// Parse a FEN string and produce a Board
@@ -45,7 +46,7 @@ pub fn from_fen(input: &str) -> Result<Board, FENParseError> {
     board_builder.set_castling_rights(catling_rights);
 
     for piece in pieces {
-        board_builder.add_piece(piece.piece_type, piece.color, piece.rank, piece.file);
+        board_builder.add_piece(piece.piece_type, piece.color, piece.square);
     }
 
     Ok(board_builder.build())
@@ -56,14 +57,14 @@ fn parse_pieces(input: &str) -> Result<Vec<FENPiece>, FENParseError> {
     let mut pieces = Vec::new();
 
     for i in 0..ranks.len() {
-        let mut parsed = parse_rank(ranks[i], 8 - i as u8)?;
+        let mut parsed = parse_piece(ranks[i], 8 - i as u8)?;
         pieces.append(&mut parsed);
     }
 
     Ok(pieces)
 }
 
-fn parse_rank(rank: &str, rank_num: u8) -> Result<Vec<FENPiece>, FENParseError> {
+fn parse_piece(rank: &str, rank_num: u8) -> Result<Vec<FENPiece>, FENParseError> {
     let mut pieces = Vec::new();
     let mut file: u8 = 1;
 
@@ -78,11 +79,12 @@ fn parse_rank(rank: &str, rank_num: u8) -> Result<Vec<FENPiece>, FENParseError> 
         } else if is_piece.is_match(&ch_str) {
             let piece_type = parse_piece_type(&ch_str)?;
             let color = parse_piece_color(&ch_str)?;
+            let r = Rank::from_index(rank_num).unwrap();
+            let f = File::from_index(file).unwrap();
             pieces.push(FENPiece {
                 piece_type,
                 color,
-                file: File::from_index(file).unwrap(),
-                rank: Rank::from_index(rank_num).unwrap(),
+                square: Square::from_pos(r, f)
             });
             file += 1;
         } else {
@@ -93,35 +95,35 @@ fn parse_rank(rank: &str, rank_num: u8) -> Result<Vec<FENPiece>, FENParseError> 
     Ok(pieces)
 }
 
-fn parse_piece_type(input: &str) -> Result<piece::Piece, FENParseError> {
+fn parse_piece_type(input: &str) -> Result<Piece, FENParseError> {
     match input.to_ascii_lowercase().trim() {
-        "p" => Ok(piece::Piece::Pawn),
-        "n" => Ok(piece::Piece::Knight),
-        "b" => Ok(piece::Piece::Bishop),
-        "r" => Ok(piece::Piece::Rook),
-        "q" => Ok(piece::Piece::Queen),
-        "k" => Ok(piece::Piece::King),
+        "p" => Ok(Piece::Pawn),
+        "n" => Ok(Piece::Knight),
+        "b" => Ok(Piece::Bishop),
+        "r" => Ok(Piece::Rook),
+        "q" => Ok(Piece::Queen),
+        "k" => Ok(Piece::King),
         _ => Err(FENParseError::FENPieceType(format!("Unknown piece type: {}", input)))
     }
 }
 
-fn parse_piece_color(input: &str) -> Result<piece::Color, FENParseError> {
+fn parse_piece_color(input: &str) -> Result<Color, FENParseError> {
     let is_white_piece = Regex::new(r"^[PNBRQK]$").unwrap();
     let is_black_piece = Regex::new(r"^[pnbrqk]$").unwrap();
 
     if is_white_piece.is_match(input) {
-        Ok(piece::Color::White)
+        Ok(Color::White)
     } else if is_black_piece.is_match(input) {
-        Ok(piece::Color::Black)
+        Ok(Color::Black)
     } else {
         Err(FENParseError::FENPieceColor(format!("Unknown color: {}", input)))
     }
 }
 
-fn parse_side_to_move(input: &str) -> Result<piece::Color, FENParseError> {
+fn parse_side_to_move(input: &str) -> Result<Color, FENParseError> {
     match input {
-        "w" => Ok(piece::Color::White),
-        "b" => Ok(piece::Color::Black),
+        "w" => Ok(Color::White),
+        "b" => Ok(Color::Black),
         _ => {
             let msg = format!("Unable to parse side to chessmove: {}", input);
             Err(FENParseError::FENSideToMove(msg))
@@ -157,7 +159,7 @@ fn parse_en_passant(input: &str) -> Result<Option<Square>, FENParseError> {
             "-" => Ok(None),
             ss => {
                 let chars: Vec<char> = ss.chars().collect();
-                let rank = Rank::from_id(&chars.get(0).unwrap().to_string()).unwrap();
+                let rank = Rank::from_string(&chars.get(0).unwrap().to_string()).unwrap();
                 let file = File::from_index(chars.get(1).unwrap().to_string().parse().unwrap()).unwrap();
                 Ok(Some(Square::from_pos(rank, file)))
             }
@@ -167,7 +169,7 @@ fn parse_en_passant(input: &str) -> Result<Option<Square>, FENParseError> {
     }
 }
 
-fn parse_castling_rights(input: &str) -> Result<[CastlingRight; piece::NUM_COLORS], FENParseError> {
+fn parse_castling_rights(input: &str) -> Result<[CastlingRight; color::NUM_COLORS], FENParseError> {
     let regex = Regex::new("^(-|[KkQq]+)$").unwrap();
 
     let mut white = CastlingRight::NoRight;
@@ -184,7 +186,7 @@ fn parse_castling_rights(input: &str) -> Result<[CastlingRight; piece::NUM_COLOR
             }
         }
 
-        let mut result: [CastlingRight; piece::NUM_COLORS] = [CastlingRight::NoRight, CastlingRight::NoRight];
+        let mut result: [CastlingRight; color::NUM_COLORS] = [CastlingRight::NoRight, CastlingRight::NoRight];
         result[Color::White.to_index()] = white;
         result[Color::Black.to_index()] = black;
         Ok(result)

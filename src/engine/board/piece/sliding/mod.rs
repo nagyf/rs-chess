@@ -1,6 +1,6 @@
 use crate::engine::board::bitboard::BitBoard;
 use crate::engine::board::piece::Piece;
-use crate::engine::board::square::constants::{FILE_A};
+use crate::engine::board::square::constants::{FILE_1};
 use crate::engine::board::square::Square;
 
 pub fn get_piece_attacks(piece: Piece, square: Square, occupied: BitBoard) -> BitBoard {
@@ -25,7 +25,7 @@ pub fn bishop_attacks(square: Square, occupied: BitBoard) -> BitBoard {
 }
 
 fn file_mask(square: Square) -> BitBoard {
-    FILE_A << ((square.to_index() & 7) as usize)
+    FILE_1 << ((square.to_index() & 7) as usize)
 }
 
 fn diagonal_mask(square: Square) -> BitBoard {
@@ -80,11 +80,11 @@ fn rank_attacks(square: Square, occupied: BitBoard) -> BitBoard {
     let rank = ((square.get_rank().to_index() - 1) * 8) as usize;
     let mut occ = occupied >> rank;
     let mut pc = square.as_bb() >> rank;
-    occ.0 = occ.0.wrapping_mul(FILE_A.0);
-    pc.0 = pc.0.wrapping_mul(FILE_A.0);
+    occ.0 = occ.0.wrapping_mul(FILE_1.0);
+    pc.0 = pc.0.wrapping_mul(FILE_1.0);
     occ &= 0x8040201008040201;
     pc &= 0x8040201008040201;
     let diag_attacks = diagonal_attacks(Square::from_bb(pc), occ);
-    let result = (diag_attacks.0.wrapping_mul(FILE_A.0) / 0x0100000000000000) << rank;
+    let result = (diag_attacks.0.wrapping_mul(FILE_1.0) / 0x0100000000000000) << rank;
     BitBoard(result)
 }
