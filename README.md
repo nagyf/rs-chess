@@ -31,7 +31,7 @@ cargo test --verbose
 
 Please read the [Contribution Guide](CONTRIBUTING.md) for more information.
 
-### Versioning
+## Versioning
 
 I prefer [Semantic versioning](https://semver.org/). Check out the link for more information, the most important part is:
 
