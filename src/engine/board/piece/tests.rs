@@ -7,6 +7,18 @@ mod color {
         assert_eq!(0, Color::White.to_index());
         assert_eq!(1, Color::Black.to_index());
     }
+
+    #[test]
+    fn not() {
+        assert_eq!(Color::Black, !Color::White);
+        assert_eq!(Color::White, !Color::Black);
+    }
+
+    #[test]
+    fn display() {
+        assert_eq!("w", Color::White.to_string());
+        assert_eq!("b", Color::Black.to_string());
+    }
 }
 
 #[cfg(test)]

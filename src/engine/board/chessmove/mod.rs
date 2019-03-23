@@ -1,5 +1,8 @@
 use crate::engine::board::square::Square;
 
+#[cfg(test)]
+mod tests;
+
 #[derive(Debug, Eq, PartialEq)]
 pub struct ChessMove {
     src: Square,
