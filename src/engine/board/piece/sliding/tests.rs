@@ -1,7 +1,52 @@
 use crate::engine::board::bitboard::BitBoard;
-use crate::engine::board::constants::{DIAGONAL_A1_H8, ANTIDIAGONAL_H1_A8};
-use crate::engine::board::piece::sliding::{bishop_attacks, queen_attacks, rook_attacks};
+use crate::engine::board::constants::{ANTIDIAGONAL_H1_A8, DIAGONAL_A1_H8};
+use crate::engine::board::piece::Piece;
+use crate::engine::board::piece::sliding::{bishop_attacks, get_piece_attacks, queen_attacks, rook_attacks};
 use crate::engine::board::square::{constants, File, Rank, Square};
+
+#[test]
+fn get_piece_attacks_rook() {
+    let square = Square::from_pos(Rank::D, File::Fourth);
+    let occupied = BitBoard::empty();
+    let attacks = get_piece_attacks(Piece::Rook,
+                                    square,
+                                    occupied);
+    let expected = rook_attacks(square, occupied);
+    assert_eq!(expected, attacks);
+}
+
+#[test]
+fn get_piece_attacks_bishop() {
+    let square = Square::from_pos(Rank::D, File::Fourth);
+    let occupied = BitBoard::empty();
+    let attacks = get_piece_attacks(Piece::Bishop,
+                                    square,
+                                    occupied);
+    let expected = bishop_attacks(square, occupied);
+    assert_eq!(expected, attacks);
+}
+
+#[test]
+fn get_piece_attacks_queen() {
+    let square = Square::from_pos(Rank::D, File::Fourth);
+    let occupied = BitBoard::empty();
+    let attacks = get_piece_attacks(Piece::Queen,
+                                    square,
+                                    occupied);
+    let expected = queen_attacks(square, occupied);
+    assert_eq!(expected, attacks);
+}
+
+#[test]
+#[should_panic]
+fn get_piece_attacks_other() {
+    let square = Square::from_pos(Rank::D, File::Fourth);
+    let occupied = BitBoard::empty();
+    get_piece_attacks(Piece::Knight,
+                      square,
+                      occupied);
+}
+
 
 //
 // Test with 1 rook in the corner
