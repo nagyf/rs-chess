@@ -1,7 +1,15 @@
+//! This module is used to calculate attack targets for sliding pieces (queen, rook, bishop).
+//!
+//! The module uses the `Hyperbola Quintessence` method to calculate the targets without lookups.
+//!
+//! For more information: [https://www.chessprogramming.org/Hyperbola_Quintessence](https://www.chessprogramming.org/Hyperbola_Quintessence)
+
 use crate::engine::board::bitboard::BitBoard;
 use crate::engine::board::piece::Piece;
-use crate::engine::board::square::constants::{FILE_1};
-use crate::engine::board::square::Square;
+use crate::engine::board::square::{constants, Square};
+
+#[cfg(test)]
+mod tests;
 
 pub fn get_piece_attacks(piece: Piece, square: Square, occupied: BitBoard) -> BitBoard {
     match piece {
@@ -25,7 +33,7 @@ pub fn bishop_attacks(square: Square, occupied: BitBoard) -> BitBoard {
 }
 
 fn file_mask(square: Square) -> BitBoard {
-    FILE_1 << ((square.to_index() & 7) as usize)
+    constants::FILE_1 << ((square.to_index() & 7) as usize)
 }
 
 fn diagonal_mask(square: Square) -> BitBoard {
@@ -76,15 +84,81 @@ fn file_attacks(square: Square, occupied: BitBoard) -> BitBoard {
     forward
 }
 
-fn rank_attacks(square: Square, occupied: BitBoard) -> BitBoard {
-    let rank = ((square.get_rank().to_index() - 1) * 8) as usize;
-    let mut occ = occupied >> rank;
-    let mut pc = square.as_bb() >> rank;
-    occ.0 = occ.0.wrapping_mul(FILE_1.0);
-    pc.0 = pc.0.wrapping_mul(FILE_1.0);
-    occ &= 0x8040201008040201;
-    pc &= 0x8040201008040201;
-    let diag_attacks = diagonal_attacks(Square::from_bb(pc), occ);
-    let result = (diag_attacks.0.wrapping_mul(FILE_1.0) / 0x0100000000000000) << rank;
-    BitBoard(result)
+/// Pre-calculated rank attack target lookup table
+lazy_static! {
+    // 2048 Bytes = 2KByte
+    static ref FIRST_RANK_ATTACKS: [[u8; 256]; 8] = init_first_rank_attacks();
+}
+
+/// Initializes the lookup table for rank attacks.
+///
+/// The resulting array will contain every possible combination of occupancies for all the 8 files
+/// in a single rank.
+fn init_first_rank_attacks() -> [[u8; 256]; 8] {
+    let mut result: [[u8; 256]; 8] = [[0; 256]; 8];
+
+    for file in 0..8 {
+        for occupancy in 0..256 {
+            result[file][occupancy] = single_rank_attacks(1u8 << file, occupancy as u8);
+        }
+    }
+
+    result
+}
+
+/// Calculates the attack targets for a single rank (thus u8 used instead of u64).
+fn single_rank_attacks(file: u8, occ: u8) -> u8 {
+    left_rank_attacks(file, occ) | right_rank_attacks(file, occ)
+}
+
+/// Calculates the attack targets from the left of the specified file, considering the occupied squares.
+///
+/// TODO I'm sure this can be improved
+fn left_rank_attacks(file: u8, occ: u8) -> u8 {
+    let mut result = 0;
+    let mut next = file << 1;
+
+    while next > 0x00 {
+        result ^= next;
+
+        if occ & next != 0x00 {
+            break;
+        }
+
+        next = next << 1;
+    }
+
+    result
+}
+
+/// Calculates the attack targets from the right of the specified file, considering the occupied squares.
+///
+/// TODO I'm sure this can be improved
+fn right_rank_attacks(file: u8, occ: u8) -> u8 {
+    let mut result = 0;
+    let mut next = file >> 1;
+
+    while next > 0x00 {
+        result ^= next;
+
+        if occ & next != 0x00 {
+            break;
+        }
+
+        next = next >> 1;
+    }
+
+    result
+}
+
+fn rank_attacks(sq: Square, occ: BitBoard) -> BitBoard {
+    let file = sq.get_file().to_index() - 1;
+    let rankx8 = ((sq.get_rank().to_index() - 1) * 8) as usize; // rank * 8
+
+    // After shifting we only care about the first rank
+    let rank_occurences = (occ.0 >> rankx8) as u8;
+
+    // Search for the attack targets in the lookup table
+    let attacks = FIRST_RANK_ATTACKS[file as usize][rank_occurences as usize] as u64;
+    BitBoard(attacks << rankx8 as usize)
 }
