@@ -111,16 +111,15 @@ impl Board {
             return None;
         }
 
-        let piece = self.piece_at(chess_move.get_source(), self.turn).unwrap();
-
         // Check if the move is legal
-        if !self.is_legal_move(piece, chess_move) {
+        if !self.is_legal_move(chess_move) {
             return None;
         }
 
         // Make sure the king doesn't remain in check at the end of the turn
         let result = self.make_move_without_validation(chess_move);
 
+        // Final validation: after making the move, our own king cannot be in check
         if result.in_check(self.turn) {
             None
         } else {
@@ -158,7 +157,13 @@ impl Board {
     /// Returns `true` if it is check, otherwise returns `false`
     fn in_check(&self, color: Color) -> bool {
         let king = self.get_pieces_color(Piece::King, color);
-        general::square_attacked_by(Square::from_bb(king), self).is_not_empty()
+        if king.is_not_empty() {
+            let king_bb = Square::from_bb(king);
+            let attacked_by = general::square_attacked_by(king_bb, self);
+            (attacked_by & self.pieces_by_color(!color)).is_not_empty()
+        } else {
+            false
+        }
     }
 
     /// Returns the position of every piece on the board.
@@ -213,7 +218,8 @@ impl Board {
     }
 
     /// Piece-wise move validation. Checks the movement rules for any piece type.
-    fn is_legal_move(&self, piece: Piece, chess_move: ChessMove) -> bool {
+    fn is_legal_move(&self, chess_move: ChessMove) -> bool {
+        let piece = self.piece_at(chess_move.get_source(), self.turn).unwrap();
         match piece {
             Piece::Pawn => {
                 // TODO handle en-passant
@@ -244,7 +250,8 @@ impl Board {
                 (valid_moves & chess_move.get_destination().as_bb()).is_not_empty() && dst_attackers.is_empty()
             }
             _ => {
-                let attack_targets = sliding::get_piece_attacks(piece, chess_move.get_source(), self.pieces());
+                let occupied = self.pieces() ^ chess_move.get_source().as_bb();
+                let attack_targets = sliding::get_piece_attacks(piece, chess_move.get_source(), occupied);
                 ((attack_targets ^ self.own_pieces()) & chess_move.get_destination().as_bb()).is_not_empty()
             }
         }
