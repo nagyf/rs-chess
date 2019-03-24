@@ -5,9 +5,11 @@ This is a **work-in-progress** project, there are no working examples yet.
 
 ## Getting started
 
-First, you need to install [Rust](https://www.rust-lang.org/tools/install) on your computer, please check out the official documentation.
+### Install Rust
 
-### Download and run
+First, you need to install [Rust](https://www.rust-lang.org/tools/install) on your computer, please check out the official documentation for further informations.
+
+### Download and run the project
 
 There are no prebuilt binaries, so you need to clone the repository:
 
