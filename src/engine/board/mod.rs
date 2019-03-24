@@ -2,7 +2,6 @@ use std::fmt::{Display, Error, Formatter};
 
 use crate::engine::board::bitboard::BitBoard;
 use crate::engine::board::chessmove::ChessMove;
-use crate::engine::board::constants::EMPTY;
 use crate::engine::board::piece::{ALL_PIECES, color, general, king, knight, pawn, Piece, sliding};
 use crate::engine::board::piece::castling::CastlingRight;
 use crate::engine::board::piece::color::Color;
@@ -159,7 +158,7 @@ impl Board {
     /// Returns `true` if it is check, otherwise returns `false`
     fn in_check(&self, color: Color) -> bool {
         let king = self.get_pieces_color(Piece::King, color);
-        let king_in_check = general::square_attacked_by(Square::from_bb(king), self) != EMPTY;
+        let king_in_check = general::square_attacked_by(Square::from_bb(king), self).is_not_empty();
         return king_in_check;
     }
 
@@ -209,12 +208,17 @@ impl Board {
         let dst = chess_move.get_destination().as_bb();
 
         // Make sure we have a piece at the source square
-        if self.own_pieces() & src == EMPTY {
+        if (self.own_pieces() & src).is_empty() {
+            return false;
+        }
+
+        // Make sure we don't have a piece at the destination square
+        if (self.own_pieces() & dst).is_not_empty() {
             return false;
         }
 
         // Make sure that the target square is not a king (you cannot capture kings)
-        if self.pieces_by_type(Piece::King) & dst != EMPTY {
+        if (self.pieces_by_type(Piece::King) & dst).is_not_empty() {
             return false;
         }
 
@@ -232,14 +236,14 @@ impl Board {
                                                            chess_move.get_source().as_bb(),
                                                            self.enemy_pieces());
 
-                (valid_moves | valid_attacks) & chess_move.get_destination().as_bb() != EMPTY
+                ((valid_moves | valid_attacks) & chess_move.get_destination().as_bb()).is_not_empty()
             }
             Piece::Knight => {
                 // Where the knight can move
                 let attack_targets = knight::attack_targets(chess_move.get_source().as_bb());
                 // Consider only the empty and the enemy occupied squares
                 let valid_moves = attack_targets & !self.own_pieces();
-                valid_moves & chess_move.get_destination().as_bb() != EMPTY
+                (valid_moves & chess_move.get_destination().as_bb()).is_not_empty()
             }
             Piece::King => {
                 let attack_targets = king::attack_targets(chess_move.get_source().as_bb());
@@ -249,11 +253,11 @@ impl Board {
                     chess_move.get_destination(),
                     self) & self.enemy_pieces();
 
-                (valid_moves & chess_move.get_destination().as_bb() != EMPTY) && dst_attackers == EMPTY
+                (valid_moves & chess_move.get_destination().as_bb()).is_not_empty() && dst_attackers.is_empty()
             }
             _ => {
                 let attack_targets = sliding::get_piece_attacks(piece, chess_move.get_source(), self.pieces());
-                (attack_targets ^ self.own_pieces()) & chess_move.get_destination().as_bb() != EMPTY
+                ((attack_targets ^ self.own_pieces()) & chess_move.get_destination().as_bb()).is_not_empty()
             }
         }
     }
@@ -262,11 +266,11 @@ impl Board {
     pub fn piece_at(&self, square: Square, color: Color) -> Option<Piece> {
         let pos = square.as_bb();
 
-        if self.pieces_by_color(color) & pos == EMPTY {
+        if (self.pieces_by_color(color) & pos).is_empty() {
             None
         } else {
             for piece in &ALL_PIECES {
-                if self.pieces[piece.to_index()] & pos != EMPTY {
+                if (self.pieces[piece.to_index()] & pos).is_not_empty() {
                     return Some(*piece);
                 }
             }

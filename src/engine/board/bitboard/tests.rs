@@ -1,5 +1,5 @@
 use crate::engine::board::bitboard::BitBoard;
-use crate::engine::board::square::{Rank, File, Square};
+use crate::engine::board::square::{File, Rank, Square};
 
 #[test]
 fn new() {
@@ -71,6 +71,18 @@ fn is_empty_true() {
 fn is_empty_false() {
     let board = BitBoard::universe();
     assert_eq!(false, board.is_empty())
+}
+
+#[test]
+fn is_not_empty_true() {
+    let board = BitBoard::from(1u64);
+    assert_eq!(true, board.is_not_empty())
+}
+
+#[test]
+fn is_not_empty_false() {
+    let board = BitBoard::empty();
+    assert_eq!(false, board.is_not_empty())
 }
 
 #[test]

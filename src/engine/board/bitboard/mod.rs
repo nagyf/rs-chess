@@ -108,6 +108,10 @@ impl BitBoard {
         self.0 == 0
     }
 
+    pub fn is_not_empty(&self) -> bool {
+        self.0 != 0
+    }
+
     /// Takes the board's complement to determine the empty fields
     pub fn empty_squares(&self) -> BitBoard {
         !(*self)

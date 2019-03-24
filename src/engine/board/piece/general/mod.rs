@@ -7,13 +7,13 @@ use crate::engine::board::square::Square;
 #[cfg(test)]
 mod tests;
 
+/// This function checks whether there are pieces attacking a particular square.
+///
+/// It will return a bitboard with every attacking pieces.
 pub fn square_attacked_by(square: Square, board: &Board) -> BitBoard {
     square_attacked_by_helper(square, board.pieces, board.colors, board.pieces())
 }
 
-/// This function checks if there are pieces attacking a particular square.
-///
-/// It will return a bitboard with every attacking pieces.
 fn square_attacked_by_helper(square: Square,
                           pieces: [BitBoard; piece::NUM_PIECES],
                           colors: [BitBoard; color::NUM_COLORS],
