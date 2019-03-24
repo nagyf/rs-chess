@@ -1,5 +1,6 @@
+use std::fmt::{Display, Error, Formatter};
+
 use crate::engine::board::bitboard::BitBoard;
-use std::fmt::{Display, Formatter, Error};
 
 pub mod constants;
 
@@ -136,7 +137,6 @@ impl Default for Square {
 }
 
 impl Square {
-
     /// Creates a new index using the specified raw value. Accepts values between 0..63
     pub fn new(index: u8) -> Square {
         if index > 63 {
@@ -155,6 +155,9 @@ impl Square {
 
     /// Converts a Bitboard to a square.
     pub fn from_bb(bb: BitBoard) -> Square {
+        // This function makes no sense if it is called for a bitboard with multiple bits toggled
+        debug_assert!(bb.0 % 2 == 0 || bb.0 == 1);
+
         let value_index = bb.bit_scan_fw();
         let rank: u8 = (value_index / 8) as u8 + 1;
         let file: u8 = (value_index % 8) as u8 + 1;

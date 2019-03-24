@@ -158,8 +158,7 @@ impl Board {
     /// Returns `true` if it is check, otherwise returns `false`
     fn in_check(&self, color: Color) -> bool {
         let king = self.get_pieces_color(Piece::King, color);
-        let king_in_check = general::square_attacked_by(Square::from_bb(king), self).is_not_empty();
-        return king_in_check;
+        general::square_attacked_by(Square::from_bb(king), self).is_not_empty()
     }
 
     /// Returns the position of every piece on the board.
@@ -194,7 +193,7 @@ impl Board {
 
     /// Sets the specified piece and color in the specified positions.
     ///
-    /// Mutates the board.
+    /// Mutates the board. Does no sanity checking, so it can break the board!
     fn xor(&mut self, piece: Piece, color: Color, bb: BitBoard) {
         self.colors[color.to_index()] ^= bb;
         self.pieces[piece.to_index()] ^= bb;
@@ -207,28 +206,17 @@ impl Board {
         let src = chess_move.get_source().as_bb();
         let dst = chess_move.get_destination().as_bb();
 
-        // Make sure we have a piece at the source square
-        if (self.own_pieces() & src).is_empty() {
-            return false;
-        }
-
-        // Make sure we don't have a piece at the destination square
-        if (self.own_pieces() & dst).is_not_empty() {
-            return false;
-        }
-
-        // Make sure that the target square is not a king (you cannot capture kings)
-        if (self.pieces_by_type(Piece::King) & dst).is_not_empty() {
-            return false;
-        }
-
-        true
+        src != dst // Source and destination must differ
+        && (self.own_pieces() & src).is_not_empty() // Make sure we have a piece at the source square
+        && (self.own_pieces() & dst).is_empty() // Make sure we don't have a piece at the destination square
+        && (self.pieces_by_type(Piece::King) & dst).is_empty() // Make sure that the target square is not a king (you cannot capture kings)
     }
 
-    /// Piece-wise move validation
+    /// Piece-wise move validation. Checks the movement rules for any piece type.
     fn is_legal_move(&self, piece: Piece, chess_move: ChessMove) -> bool {
         match piece {
             Piece::Pawn => {
+                // TODO handle en-passant
                 let valid_moves = pawn::push_targets(self.turn,
                                                      chess_move.get_source().as_bb(),
                                                      self.empty_squares());
