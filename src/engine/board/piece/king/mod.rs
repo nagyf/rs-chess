@@ -5,7 +5,7 @@ mod tests;
 
 /// Returns the attack targets of the kings.
 pub fn attack_targets(kings: BitBoard) -> BitBoard {
-    let attacks = kings.east_one()
+    return kings.east_one()
         | kings.west_one()
         | kings.north_one()
         | kings.south_one()
@@ -13,5 +13,4 @@ pub fn attack_targets(kings: BitBoard) -> BitBoard {
         | kings.no_we_one()
         | kings.so_ea_one()
         | kings.so_we_one();
-    attacks
 }

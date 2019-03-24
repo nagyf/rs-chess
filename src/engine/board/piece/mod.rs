@@ -2,6 +2,7 @@ use std::fmt::{Display, Error, Formatter};
 
 use crate::engine::board::bitboard::BitBoard;
 
+pub mod general;
 pub mod sliding;
 pub mod pawn;
 pub mod knight;

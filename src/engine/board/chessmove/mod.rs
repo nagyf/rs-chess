@@ -3,7 +3,7 @@ use crate::engine::board::square::Square;
 #[cfg(test)]
 mod tests;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub struct ChessMove {
     src: Square,
     dst: Square

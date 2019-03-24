@@ -1,10 +1,11 @@
 use regex::Regex;
 
-use crate::engine::board::{Board, BoardBuilder};
+use crate::engine::board::Board;
 use crate::engine::board::square::{File, Rank, Square};
 use crate::engine::board::piece::castling::CastlingRight;
 use crate::engine::board::piece::color::Color;
 use crate::engine::board::piece::{Piece, color};
+use crate::engine::board::builder::BoardBuilder;
 
 #[cfg(test)]
 mod tests;

@@ -3,16 +3,17 @@ use std::fmt::{Display, Error, Formatter};
 use crate::engine::board::bitboard::BitBoard;
 use crate::engine::board::chessmove::ChessMove;
 use crate::engine::board::constants::EMPTY;
-use crate::engine::board::piece::{ALL_PIECES, king, knight, pawn, Piece, sliding, color};
-use crate::engine::board::square::{Square};
-use crate::engine::board::piece::color::Color;
+use crate::engine::board::piece::{ALL_PIECES, color, general, king, knight, pawn, Piece, sliding};
 use crate::engine::board::piece::castling::CastlingRight;
+use crate::engine::board::piece::color::Color;
+use crate::engine::board::square::Square;
 
 mod constants;
 pub mod bitboard;
 pub mod piece;
 pub mod square;
 pub mod chessmove;
+pub mod builder;
 #[cfg(test)]
 mod tests;
 
@@ -67,54 +68,70 @@ impl Board {
         }
     }
 
+    /// Returns the color of the player who have to move .
     pub fn get_turn(&self) -> Color {
         return self.turn;
     }
 
+    /// Returns the number of half moves.
     pub fn get_half_moves(&self) -> u16 {
         return self.half_moves;
     }
 
+    /// Returns the number of full moves.
     pub fn get_full_moves(&self) -> u16 {
         return self.full_moves;
     }
 
+    /// Returns en_passant target square, or `None`.
     pub fn get_en_passant(&self) -> Option<Square> {
         return self.en_passant;
     }
 
+    /// Returns the castling rights.
     pub fn get_castling_rights(&self) -> [CastlingRight; 2] {
         return self.castling_rights;
     }
 
+    /// Returns piece positions by piece type.
     pub fn get_pieces(&self, piece: Piece) -> BitBoard {
         self.pieces[piece.to_index()]
     }
 
+    /// Returns piece positions by piece type and color.
     pub fn get_pieces_color(&self, piece: Piece, color: Color) -> BitBoard {
         self.pieces[piece.to_index()] & self.colors[color.to_index()]
     }
 
-    pub fn add_piece(&mut self, piece_type: Piece, color: Color, square: Square) -> Board {
-        let mut result = *self;
-        result.pieces[piece_type.to_index()] = self.pieces[piece_type.to_index()].set(square);
-        result.colors[color.to_index()] = result.colors[color.to_index()].set(square);
-        result
-    }
-
+    /// Validates the move and makes it, if it is valid.
+    ///
+    /// Returns the new board after the move, or `None` if the move was invalid.
     pub fn make_move(&self, chess_move: ChessMove) -> Option<Board> {
         // Check if source is not empty
-        if !self.is_valid_move(&chess_move) {
+        if !self.is_valid_move(chess_move) {
             return None;
         }
 
         let piece = self.piece_at(chess_move.get_source(), self.turn).unwrap();
 
         // Check if the move is legal
-        if !self.is_legal_move(piece, &chess_move) {
+        if !self.is_legal_move(piece, chess_move) {
             return None;
         }
 
+        // Make sure the king doesn't remain in check at the end of the turn
+        let result = self.make_move_without_validation(chess_move);
+
+        if result.in_check(self.turn) {
+            None
+        } else {
+            Some(result)
+        }
+    }
+
+    /// Makes a move without any sanity checking or validity checking
+    fn make_move_without_validation(&self, chess_move: ChessMove) -> Board {
+        let piece = self.piece_at(chess_move.get_source(), self.turn).unwrap();
         let src = chess_move.get_source().as_bb();
         let dst = chess_move.get_destination().as_bb();
 
@@ -134,39 +151,60 @@ impl Board {
             result.full_moves += 1;
         }
         result.turn = !result.turn;
-        Some(result)
+        return result;
     }
 
+    /// This function checks whether the king of the specified color is in check.
+    ///
+    /// Returns `true` if it is check, otherwise returns `false`
+    fn in_check(&self, color: Color) -> bool {
+        let king = self.get_pieces_color(Piece::King, color);
+        let king_in_check = general::square_attacked_by(Square::from_bb(king), self) != EMPTY;
+        return king_in_check;
+    }
+
+    /// Returns the position of every piece on the board.
     pub fn pieces(&self) -> BitBoard {
         self.colors[Color::White.to_index()] | self.colors[Color::Black.to_index()]
     }
 
-    pub fn empty_bb(&self) -> BitBoard {
+    /// Returns a bitboard which contains only the squares that are empty.
+    pub fn empty_squares(&self) -> BitBoard {
         !self.pieces()
     }
 
+    /// Returns every piece by the specified color.
     pub fn pieces_by_color(&self, color: Color) -> BitBoard {
         self.colors[color.to_index()]
     }
 
+    /// Returns the current player's pieces.
     pub fn own_pieces(&self) -> BitBoard {
         self.pieces_by_color(self.turn)
     }
 
+    /// Returns the enemy player's pieces.
     pub fn enemy_pieces(&self) -> BitBoard {
         self.pieces_by_color(!self.turn)
     }
 
+    /// Returns every piece by the specified type.
     pub fn pieces_by_type(&self, piece: Piece) -> BitBoard {
         self.pieces[piece.to_index()]
     }
 
+    /// Sets the specified piece and color in the specified positions.
+    ///
+    /// Mutates the board.
     fn xor(&mut self, piece: Piece, color: Color, bb: BitBoard) {
         self.colors[color.to_index()] ^= bb;
         self.pieces[piece.to_index()] ^= bb;
     }
 
-    fn is_valid_move(&self, chess_move: &ChessMove) -> bool {
+    /// This function runs a sanity check before piece-wise move validation.
+    ///
+    /// Checks basic things, like if there is a piece at the source square, and it is our own piece.
+    fn is_valid_move(&self, chess_move: ChessMove) -> bool {
         let src = chess_move.get_source().as_bb();
         let dst = chess_move.get_destination().as_bb();
 
@@ -183,15 +221,16 @@ impl Board {
         true
     }
 
-    fn is_legal_move(&self, piece: Piece, chess_move: &ChessMove) -> bool {
+    /// Piece-wise move validation
+    fn is_legal_move(&self, piece: Piece, chess_move: ChessMove) -> bool {
         match piece {
             Piece::Pawn => {
                 let valid_moves = pawn::push_targets(self.turn,
                                                      chess_move.get_source().as_bb(),
-                                                     self.empty_bb());
+                                                     self.empty_squares());
                 let valid_attacks = pawn::any_valid_attack(self.turn,
-                                                          chess_move.get_source().as_bb(),
-                                                          self.enemy_pieces());
+                                                           chess_move.get_source().as_bb(),
+                                                           self.enemy_pieces());
 
                 (valid_moves | valid_attacks) & chess_move.get_destination().as_bb() != EMPTY
             }
@@ -203,10 +242,14 @@ impl Board {
                 valid_moves & chess_move.get_destination().as_bb() != EMPTY
             }
             Piece::King => {
-                // TODO consider non-check squares
                 let attack_targets = king::attack_targets(chess_move.get_source().as_bb());
                 let valid_moves = attack_targets & !self.own_pieces();
-                valid_moves & chess_move.get_destination().as_bb() != EMPTY
+                // Check if there are anyone attacking the destination
+                let dst_attackers = general::square_attacked_by(
+                    chess_move.get_destination(),
+                    self) & self.enemy_pieces();
+
+                (valid_moves & chess_move.get_destination().as_bb() != EMPTY) && dst_attackers == EMPTY
             }
             _ => {
                 let attack_targets = sliding::get_piece_attacks(piece, chess_move.get_source(), self.pieces());
@@ -215,6 +258,7 @@ impl Board {
         }
     }
 
+    /// Returns the piece at the specified square, from the specified color.
     pub fn piece_at(&self, square: Square, color: Color) -> Option<Piece> {
         let pos = square.as_bb();
 
@@ -241,82 +285,5 @@ impl Display for Board {
 
 
         write!(f, "{}", board)
-    }
-}
-
-pub struct BoardBuilder {
-    turn: Color,
-    half_moves: u16,
-    full_moves: u16,
-    en_passant: Option<Square>,
-    castling_rights: [CastlingRight; color::NUM_COLORS],
-    colors: [BitBoard; color::NUM_COLORS],
-    pieces: [BitBoard; piece::NUM_PIECES],
-}
-
-impl BoardBuilder {
-    pub fn new() -> BoardBuilder {
-        BoardBuilder {
-            turn: Color::White,
-            half_moves: 0,
-            full_moves: 0,
-            en_passant: None,
-            castling_rights: [CastlingRight::NoRight, CastlingRight::NoRight],
-            colors: [BitBoard::new(); color::NUM_COLORS],
-            pieces: [BitBoard::new(); piece::NUM_PIECES],
-        }
-    }
-
-    pub fn set_turn(&mut self, color: Color) -> &mut BoardBuilder {
-        self.turn = color;
-        self
-    }
-
-    pub fn set_half_moves(&mut self, half_moves: u16) -> &mut BoardBuilder {
-        self.half_moves = half_moves;
-        self
-    }
-
-    pub fn set_full_moves(&mut self, full_moves: u16) -> &mut BoardBuilder {
-        self.full_moves = full_moves;
-        self
-    }
-
-    pub fn set_en_passant(&mut self, en_passant: Option<Square>) -> &mut BoardBuilder {
-        self.en_passant = en_passant;
-        self
-    }
-
-    pub fn set_castling_right(&mut self, color: Color, castling_right: CastlingRight) -> &mut BoardBuilder {
-        self.castling_rights[color.to_index()] = castling_right;
-        self
-    }
-
-    pub fn set_castling_rights(&mut self, castling_rights: [CastlingRight; 2]) -> &mut BoardBuilder {
-        self.castling_rights = castling_rights;
-        self
-    }
-
-    pub fn set_color(&mut self, color: Color, bitboard: BitBoard) -> &mut BoardBuilder {
-        self.colors[color.to_index()] = bitboard;
-        self
-    }
-
-    pub fn add_piece(&mut self, piece_type: Piece, color: Color, square: Square) -> &mut BoardBuilder {
-        self.pieces[piece_type.to_index()] = self.pieces[piece_type.to_index()].set(square);
-        self.colors[color.to_index()] = self.colors[color.to_index()].set(square);
-        self
-    }
-
-    pub fn build(&self) -> Board {
-        let mut board = Board::empty();
-        board.turn = self.turn;
-        board.half_moves = self.half_moves;
-        board.full_moves = self.full_moves;
-        board.en_passant = self.en_passant;
-        board.castling_rights = self.castling_rights;
-        board.colors = self.colors;
-        board.pieces = self.pieces;
-        board
     }
 }
