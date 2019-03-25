@@ -1,3 +1,5 @@
+//! This module implements a `Square` type that is used to reference a single square on the chessboard.
+
 use std::fmt::{Display, Error, Formatter};
 
 use crate::engine::board::bitboard::BitBoard;
@@ -7,7 +9,7 @@ pub mod constants;
 #[cfg(test)]
 mod tests;
 
-/// Represents the rank (the rows) of the chessboard
+/// Represents the rank (the rows) of the chessboard.
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum Rank {
     A = 1,
@@ -20,7 +22,7 @@ pub enum Rank {
     H,
 }
 
-/// Represents the file (the columns) of the chessboard
+/// Represents the file (the columns) of the chessboard.
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum File {
     First = 1,
@@ -137,7 +139,7 @@ impl Default for Square {
 }
 
 impl Square {
-    /// Creates a new index using the specified raw value. Accepts values between 0..63
+    /// Creates a new index using the specified raw value. Accepts values between 0..63.
     pub fn new(index: u8) -> Square {
         if index > 63 {
             panic!(format!("Invalid square value: {}!", index))
@@ -146,7 +148,7 @@ impl Square {
         Square(index)
     }
 
-    /// Returns a square for the specified rank and file
+    /// Returns the square for the specified `rank` and `file`.
     pub fn from_pos(rank: Rank, file: File) -> Square {
         let rank = rank.to_index() - 1;
         let file = file.to_index() - 1;
@@ -165,22 +167,22 @@ impl Square {
                          File::from_index(file).unwrap())
     }
 
-    /// Returns the raw value, the index of the square. Can be a value between 0..63
+    /// Returns the raw value, the index of the square. Can be a value between 0..63.
     pub fn to_index(&self) -> u64 {
         self.0 as u64
     }
 
-    /// Converts the square to a bitboard in which the only 1 bit will be the square itself
+    /// Converts the square to a `BitBoard` in which the only 1 bit will be the square itself.
     pub fn as_bb(&self) -> BitBoard {
         BitBoard::from(1u64 << self.to_index())
     }
 
-    /// Returns the rank of this square
+    /// Returns the `rank` of this square.
     pub fn get_rank(&self) -> Rank {
         Rank::from_index(self.0 / 8 + 1).unwrap()
     }
 
-    /// Returns the file of this square
+    /// Returns the `file` of this square.
     pub fn get_file(&self) -> File {
         File::from_index(self.0 % 8 + 1).unwrap()
     }

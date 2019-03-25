@@ -1,3 +1,5 @@
+//! General movement related logics implemented in this module.
+
 use crate::engine::board::{Board, piece};
 use crate::engine::board::bitboard::BitBoard;
 use crate::engine::board::piece::{color, king, knight, pawn, Piece, sliding};
@@ -9,7 +11,7 @@ mod tests;
 
 /// This function checks whether there are pieces attacking a particular square.
 ///
-/// It will return a bitboard with every attacking pieces.
+/// It will return a bitboard with every attackers in it.
 pub fn square_attacked_by(square: Square, board: &Board) -> BitBoard {
     square_attacked_by_helper(square, board.pieces, board.colors, board.pieces())
 }

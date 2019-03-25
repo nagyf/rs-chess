@@ -1,3 +1,5 @@
+//! This module implements a `Builder` patter to be able to incrementally build a `Board`.
+
 use crate::engine::board::piece::color::Color;
 use crate::engine::board::square::Square;
 use crate::engine::board::piece::castling::CastlingRight;

@@ -1,3 +1,5 @@
+//! Board related constants.
+
 // TODO: remove this
 #![allow(unused)]
 

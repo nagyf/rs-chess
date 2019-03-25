@@ -1,3 +1,5 @@
+//! Various `Square` related constants resides in this module.
+
 // TODO: remove this
 #![allow(unused)]
 

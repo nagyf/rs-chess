@@ -1,17 +1,41 @@
+//! This module implements the parsing of a `Forsyth–Edwards Notation` formatted string,
+//! and converting it to a `Board` representation.
+//!
+//! Forsyth–Edwards Notation (FEN) is a standard notation for describing a particular board position of a chess game. The purpose of FEN is to provide all the necessary information to restart a game from a particular position.
+//!
+//! A FEN record contains six fields. The separator between fields is a space. The fields are:
+//!
+//! * **Piece placement** (from White's perspective). Each rank is described, starting with rank 8 and ending with rank 1; within each rank, the contents of each square are described from file "a" through file "h". Following the Standard Algebraic Notation (SAN), each piece is identified by a single letter taken from the standard English names (pawn = "P", knight = "N", bishop = "B", rook = "R", queen = "Q" and king = "K"). White pieces are designated using upper-case letters ("PNBRQK") while black pieces use lowercase ("pnbrqk"). Empty squares are noted using digits 1 through 8 (the number of empty squares), and "/" separates ranks.
+//! * **Active color:** `w` means White moves next, `b` means Black moves next.
+//! * **Castling availability:** If neither side can castle, this is "-". Otherwise, this has one or more letters: "K" (White can castle kingside), "Q" (White can castle queenside), "k" (Black can castle kingside), and/or "q" (Black can castle queenside).
+//! * **En passant**: target square in algebraic notation. If there's no en passant target square, this is "-". If a pawn has just made a two-square move, this is the position "behind" the pawn. This is recorded regardless of whether there is a pawn in position to make an en passant capture.
+//! * **Halfmove clock**: This is the number of halfmoves since the last capture or pawn advance. This is used to determine if a draw can be claimed under the fifty-move rule.
+//! * **Fullmove number**: The number of the full move. It starts at 1, and is incremented after Black's move.
+//!
+//! # Example
+//!
+//! The FEN for the starting position:
+//!
+//! ```
+//! rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+//! ```
+
 use regex::Regex;
 
 use crate::engine::board::Board;
-use crate::engine::board::square::{File, Rank, Square};
+use crate::engine::board::builder::BoardBuilder;
+use crate::engine::board::piece::{color, Piece};
 use crate::engine::board::piece::castling::CastlingRight;
 use crate::engine::board::piece::color::Color;
-use crate::engine::board::piece::{Piece, color};
-use crate::engine::board::builder::BoardBuilder;
+use crate::engine::board::square::{File, Rank, Square};
 
 #[cfg(test)]
 mod tests;
 
+/// The FEN representation of the initial board.
 pub const INITIAL_BOARD: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
+/// Represents parser errors happened during the FEN parsing.
 #[derive(Debug, Eq, PartialEq)]
 pub enum FENParseError {
     FENPiece(String),
@@ -27,10 +51,10 @@ pub enum FENParseError {
 struct FENPiece {
     piece_type: Piece,
     color: Color,
-    square: Square
+    square: Square,
 }
 
-/// Parse a FEN string and produce a Board
+/// Parse a FEN string and produce a Board.
 pub fn from_fen(input: &str) -> Result<Board, FENParseError> {
     let parts: Vec<&str> = input.trim().split_whitespace().collect();
     let pieces = parse_pieces(parts[0])?;
@@ -85,11 +109,11 @@ fn parse_piece(rank: &str, rank_num: u8) -> Result<Vec<FENPiece>, FENParseError>
             pieces.push(FENPiece {
                 piece_type,
                 color,
-                square: Square::from_pos(r, f)
+                square: Square::from_pos(r, f),
             });
             file += 1;
         } else {
-            return Err(FENParseError::FENPiece(format!("Unable to parse rank: {}", rank)))
+            return Err(FENParseError::FENPiece(format!("Unable to parse rank: {}", rank)));
         }
     }
 

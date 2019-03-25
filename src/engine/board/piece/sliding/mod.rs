@@ -11,6 +11,10 @@ use crate::engine::board::square::{constants, Square};
 #[cfg(test)]
 mod tests;
 
+/// Returns the attack targets for the specific `piece` type on the specific `square`,
+/// taking into account the `occupied` squares.
+///
+/// The function will only work for `Queen`, `Rook` and `Bishop`. In any other case it will panic!
 pub fn get_piece_attacks(piece: Piece, square: Square, occupied: BitBoard) -> BitBoard {
     match piece {
         Piece::Rook => rook_attacks(square, occupied),
@@ -20,14 +24,17 @@ pub fn get_piece_attacks(piece: Piece, square: Square, occupied: BitBoard) -> Bi
     }
 }
 
+/// Returns the attack targets of a `Rook` on the specific `square` considering the `occupied` squares.
 pub fn rook_attacks(square: Square, occupied: BitBoard) -> BitBoard {
     rank_attacks(square, occupied) | file_attacks(square, occupied)
 }
 
+/// Returns the attack targets of a `Queen` on the specific `square` considering the `occupied` squares.
 pub fn queen_attacks(square: Square, occupied: BitBoard) -> BitBoard {
     rook_attacks(square, occupied) | bishop_attacks(square, occupied)
 }
 
+/// Returns the attack targets of a `Bishop` on the specific `square` considering the `occupied` squares.
 pub fn bishop_attacks(square: Square, occupied: BitBoard) -> BitBoard {
     diagonal_attacks(square, occupied) | anti_diagonal_attacks(square, occupied)
 }
@@ -84,9 +91,10 @@ fn file_attacks(square: Square, occupied: BitBoard) -> BitBoard {
     forward
 }
 
-/// Pre-calculated rank attack target lookup table
 lazy_static! {
-    // 2048 Bytes = 2KByte
+    /// Pre-calculated rank attack target lookup table.
+    ///
+    /// 2048 Bytes = 2KByte
     static ref FIRST_RANK_ATTACKS: [[u8; 256]; 8] = init_first_rank_attacks();
 }
 

@@ -1,3 +1,5 @@
+//! This module implements everything related to a chessboard representation.
+
 use std::fmt::{Display, Error, Formatter};
 
 use crate::engine::board::bitboard::BitBoard;
@@ -16,6 +18,13 @@ pub mod builder;
 #[cfg(test)]
 mod tests;
 
+/// Chess board representation, including the piece positions and the state of the game.
+///
+/// The game state consists of the following informations:
+/// * whose turn is it?
+/// * En-passant target square
+/// * Castling rights for both players
+/// * Half- and Full move counters
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub struct Board {
     turn: Color,
@@ -30,7 +39,7 @@ pub struct Board {
 impl Board {
     /// Constructs a completely empty board.
     ///
-    /// If you want an initial board instead, use Board::new() or default()
+    /// If you want an initial board instead, use `Board::new()` or `default()`.
     pub fn empty() -> Board {
         Board {
             turn: Color::White,
@@ -45,7 +54,7 @@ impl Board {
 
     /// Constructs a new board with every piece in it's initial position.
     ///
-    /// If you want a completely empty board, use Board::empty() instead.
+    /// If you want a completely empty board, use `Board::empty()` instead.
     pub fn new() -> Board {
         let mut pieces = [BitBoard::new(); piece::NUM_PIECES];
         for piece in &piece::ALL_PIECES {
@@ -67,7 +76,7 @@ impl Board {
         }
     }
 
-    /// Returns the color of the player who have to move .
+    /// Returns the color of the player who have to move.
     pub fn get_turn(&self) -> Color {
         return self.turn;
     }
@@ -127,7 +136,7 @@ impl Board {
         }
     }
 
-    /// Makes a move without any sanity checking or validity checking
+    /// Makes a move without any sanity- or validity checking.
     fn make_move_without_validation(&self, chess_move: ChessMove) -> Board {
         let piece = self.piece_at(chess_move.get_source(), self.turn).unwrap();
         let src = chess_move.get_source().as_bb();
@@ -160,7 +169,7 @@ impl Board {
 
     /// This function checks whether the king of the specified color is in check.
     ///
-    /// Returns `true` if it is check, otherwise returns `false`
+    /// Returns `true` if it is check, otherwise returns `false`.
     fn in_check(&self, color: Color) -> bool {
         let king = self.get_pieces_color(Piece::King, color);
         if king.is_not_empty() {

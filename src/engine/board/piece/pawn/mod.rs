@@ -1,3 +1,5 @@
+//! This module implements the `Pawn`'s movement logic.
+
 // TODO: remove this
 #![allow(unused)]
 
