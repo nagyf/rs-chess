@@ -767,3 +767,63 @@ fn make_move_capture() {
     assert!(result.unwrap().get_pieces_color(Piece::Queen, Color::Black).is_empty());
     assert!(result.unwrap().get_pieces_color(Piece::Rook, Color::White).is_not_empty());
 }
+
+//
+// Pawn promotion
+//
+
+#[test]
+fn make_move_promotion_valid() {
+    let mut board = Board::empty();
+    board.xor(Piece::Pawn, Color::White,
+              Square::from_pos(Rank::G, File::First).as_bb());
+
+    let src = Square::from_pos(Rank::G, File::First);
+    let dst = Square::from_pos(Rank::H, File::First);
+    let promotion = Piece::Queen;
+    let result = board.make_move(ChessMove::new_promote(src, dst, promotion));
+    assert_ne!(None, result);
+    assert!(result.unwrap().get_pieces_color(Piece::Pawn, Color::White).is_empty());
+    assert!(result.unwrap().get_pieces_color(Piece::Queen, Color::White).is_not_empty());
+    assert_eq!(BitBoard::from(0x0100000000000000),
+               result.unwrap().get_pieces_color(Piece::Queen, Color::White));
+}
+
+#[test]
+fn make_move_promotion_invalid_piece() {
+    let mut board = Board::empty();
+    board.xor(Piece::Bishop, Color::White,
+              Square::from_pos(Rank::G, File::First).as_bb());
+
+    let src = Square::from_pos(Rank::G, File::First);
+    let dst = Square::from_pos(Rank::H, File::First);
+    let promotion = Piece::Queen;
+    let result = board.make_move(ChessMove::new_promote(src, dst, promotion));
+    assert_eq!(None, result);
+}
+
+#[test]
+fn make_move_promotion_invalid_position() {
+    let mut board = Board::empty();
+    board.xor(Piece::Pawn, Color::White,
+              Square::from_pos(Rank::D, File::First).as_bb());
+
+    let src = Square::from_pos(Rank::D, File::First);
+    let dst = Square::from_pos(Rank::E, File::First);
+    let promotion = Piece::Queen;
+    let result = board.make_move(ChessMove::new_promote(src, dst, promotion));
+    assert_eq!(None, result);
+}
+
+#[test]
+fn make_move_promotion_invalid_promoted() {
+    let mut board = Board::empty();
+    board.xor(Piece::Pawn, Color::White,
+              Square::from_pos(Rank::G, File::First).as_bb());
+
+    let src = Square::from_pos(Rank::G, File::First);
+    let dst = Square::from_pos(Rank::H, File::First);
+    let promotion = Piece::King;
+    let result = board.make_move(ChessMove::new_promote(src, dst, promotion));
+    assert_eq!(None, result);
+}

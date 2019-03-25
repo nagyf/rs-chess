@@ -135,9 +135,15 @@ impl Board {
 
         // Create the result
         let mut result = *self;
+
         // Move the piece
         result.xor(piece, self.turn, src);
-        result.xor(piece, self.turn, dst);
+
+        if let Some(promoted) = chess_move.get_promotion() {
+            result.xor(promoted, self.turn, dst);
+        } else {
+            result.xor(piece, self.turn, dst);
+        }
 
         // If there was a capture, remove that piece
         if let Some(captured) = self.piece_at(chess_move.get_destination(), !self.turn) {
@@ -210,11 +216,21 @@ impl Board {
     fn is_valid_move(&self, chess_move: ChessMove) -> bool {
         let src = chess_move.get_source().as_bb();
         let dst = chess_move.get_destination().as_bb();
+        let promotion = chess_move.get_promotion();
+
+        let valid_promotion = promotion.map_or(true, |promoted| {
+            promoted != Piece::King // Cannot promote a king
+                && promoted != Piece::Pawn // Cannot promote a pawn
+                && (self.pieces_by_type(Piece::Pawn) & src).is_not_empty() // Must use a pawn for promotion
+                && (self.turn == Color::White && (BitBoard::from(0xFF00000000000000) & dst).is_not_empty()
+                || self.turn == Color::Black && (BitBoard::from(0x00000000000000FF) & dst).is_not_empty())
+        });
 
         src != dst // Source and destination must differ
-        && (self.own_pieces() & src).is_not_empty() // Make sure we have a piece at the source square
-        && (self.own_pieces() & dst).is_empty() // Make sure we don't have a piece at the destination square
-        && (self.pieces_by_type(Piece::King) & dst).is_empty() // Make sure that the target square is not a king (you cannot capture kings)
+            && (self.own_pieces() & src).is_not_empty() // Make sure we have a piece at the source square
+            && (self.own_pieces() & dst).is_empty() // Make sure we don't have a piece at the destination square
+            && (self.pieces_by_type(Piece::King) & dst).is_empty() // Make sure that the target square is not a king (you cannot capture kings)
+            && valid_promotion
     }
 
     /// Piece-wise move validation. Checks the movement rules for any piece type.
