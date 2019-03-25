@@ -1,18 +1,20 @@
-//! This module implements a [BitBoard](https://www.chessprogramming.org/Bitboards) as a board representation.
+//! This module implements a [BitBoard](https://www.chessprogramming.org/Bitboards) as a chessboard representation.
 //!
 //! Implementation follows the `Little endian rank-file mapping`, so the bits in the bitboard follows the following enumeration:
 //! ```
-//! 57 58 59 60 61 62 63 64
-//! 49 50 51 52 53 54 55 56
-//! 41 42 43 44 45 46 47 48
-//! 33 34 35 36 37 38 39 40
-//! 25 26 27 28 29 30 31 32
-//! 17 18 19 20 21 22 23 24
-//!  9 10 11 12 13 14 15 16
-//!  1  2  3  4  5  6  7  8
+//! h | 57 58 59 60 61 62 63 64
+//! g | 49 50 51 52 53 54 55 56
+//! f | 41 42 43 44 45 46 47 48
+//! e | 33 34 35 36 37 38 39 40
+//! d | 25 26 27 28 29 30 31 32
+//! c | 17 18 19 20 21 22 23 24
+//! b |  9 10 11 12 13 14 15 16
+//! a |  1  2  3  4  5  6  7  8
+//!   |------------------------
+//!      1  2  3  4  5  6  7  8
 //! ```
 //!
-//! The bitboard is represented with a 64bit unsigned integer value as follows:
+//! The bitboard is represented with a `64bit unsigned integer` value as follows:
 //! ```
 //! 0x0000000000000000
 //!   ^^            ^^
@@ -30,19 +32,41 @@ use crate::engine::board::square::{constants, Square};
 mod tests;
 
 ///
-/// Bitboard implemented with Little endian rank-file (LERF) mapping
-/// For more information: https://www.chessprogramming.org/Square_Mapping_Considerations#Little-Endian_Rank-File_Mapping
+/// Bitboard implemented with Little endian rank-file (LERF) mapping.
+///
+/// For more information: [Little-Endian Rank-File Mapping](https://www.chessprogramming.org/Square_Mapping_Considerations#Little-Endian_Rank-File_Mapping)
 ///
 #[derive(PartialEq, Eq, Copy, Clone)]
 pub struct BitBoard(pub u64);
 
 impl Default for BitBoard {
+    /// Returns the default BitBoard, which is empty, or `0`.
     fn default() -> Self {
-        Self(0)
+        EMPTY
     }
 }
 
 impl BitBoard {
+    /// Formats the BitBoard as a chessboard.
+    ///
+    /// Useful for debugging purposes.
+    /// `occupied` will be used for bits of `1`, `empty` will be used for bits of `0`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// let bb = BitBoard::new(0x0101010101010101);
+    /// println!("{}", bb.format_with("X ", ". "));
+    ///
+    /// X . . . . . . .
+    /// X . . . . . . .
+    /// X . . . . . . .
+    /// X . . . . . . .
+    /// X . . . . . . .
+    /// X . . . . . . .
+    /// X . . . . . . .
+    /// X . . . . . . .
+    /// ```
     pub fn format_with(&self, occupied: &str, empty: &str) -> String {
         let mut result: String = "".to_owned();
         let mut row: String = "".to_owned();
@@ -76,93 +100,130 @@ impl Debug for BitBoard {
 }
 
 impl BitBoard {
-    /// Creates an empty bitboard
+    /// Creates an empty bitboard, meaning its' value will be `0`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// assert_eq!(0, BitBoard::new().0);
+    /// ```
     pub fn new() -> Self {
         Default::default()
     }
 
-    /// Creates a bitboard from a u64 value
+    /// Creates a bitboard from a `u64` value.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// assert_eq!(0x0000000000000008, BitBoard::from(8).0);
+    /// ```
     pub fn from(value: u64) -> Self {
         BitBoard(value)
     }
 
-    /// Creates an empty bitboard
+    /// Creates an empty bitboard, meaning its' value will be `0`.
     pub fn empty() -> Self {
-        Self::new()
+        EMPTY
     }
 
-    /// Creates a bitboard in which every bit is set to 1
+    /// Creates a bitboard in which every bit is set to `1`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// assert_eq!(0xFFFFFFFFFFFFFFFF, BitBoard::universe().0);
+    /// ```
     pub fn universe() -> Self {
         UNIVERSE
     }
 }
 
 impl BitBoard {
-    /// Returns the underlying value of the board as a u64 number
+    /// Returns the underlying value of the bitboard as a `u64` number.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// assert_eq!(42, BitBoard::from(42).value());
+    /// ```
     pub fn value(&self) -> u64 {
         self.0
     }
 
-    /// Checks whether the board is empty
+    /// Checks whether the bitboard is empty (equal to `0`).
     pub fn is_empty(&self) -> bool {
         self.0 == 0
     }
 
+    /// Checks whether the bitboard is *not* empty (greater than `0`).
     pub fn is_not_empty(&self) -> bool {
         self.0 != 0
     }
 
-    /// Takes the board's complement to determine the empty fields
+    /// Takes the bitboard's complement to determine the empty fields.
+    ///
+    /// Bits of `1`s becomes `0`s and vice-versa.
     pub fn empty_squares(&self) -> BitBoard {
         !(*self)
     }
 
-    /// Negate every bit in the board, so ones become zeros, and zeros become ones
+    /// Negate every bit in the bitboard, so ones become zeros, and zeros become ones.
     pub fn complement(&self) -> BitBoard {
         !*self
     }
 
+    /// Moves every bit in the bitboard *up* one row.
     pub fn north_one(&self) -> BitBoard {
         *self << 8
     }
 
+    /// Moves every bit in the bitboard *down* one row.
     pub fn south_one(&self) -> BitBoard {
         *self >> 8
     }
 
+    /// Moves every bit in the bitboard *right* one file.
     pub fn east_one(&self) -> BitBoard {
         (*self << 1) & constants::NOT_1_FILE
     }
 
+    /// Moves every bit in the bitboard *up and right* one rank and file.
     pub fn no_ea_one(&self) -> BitBoard {
         (*self << 9) & constants::NOT_1_FILE
     }
 
+    /// Moves every bit in the bitboard *down and right* one rank and file.
     pub fn so_ea_one(&self) -> BitBoard {
         (*self >> 7) & constants::NOT_1_FILE
     }
 
+    /// Moves every bit in the bitboard *left* one file.
     pub fn west_one(&self) -> BitBoard {
         (*self >> 1) & constants::NOT_8_FILE
     }
 
+    /// Moves every bit in the bitboard *down and left* one rank and file.
     pub fn so_we_one(&self) -> BitBoard {
         (*self >> 9) & constants::NOT_8_FILE
     }
 
+    /// Moves every bit in the bitboard *up and left* one rank and file.
     pub fn no_we_one(&self) -> BitBoard {
         (*self << 7) & constants::NOT_8_FILE
     }
 
+    /// Rotates the board 90 degrees *counter-clockwise*.
     pub fn rotate_left(&self, steps: usize) -> BitBoard {
         (*self << steps) | (*self >> (64 - steps))
     }
 
+    /// Rotates the board 90 degrees *clockwise*.
     pub fn rotate_right(&self, steps: usize) -> BitBoard {
         (*self >> steps) | (*self << (64 - steps))
     }
 
-    /// Shifts left for positive amounts but right for negative ones
+    /// Generic shift: shifts left for positive amounts but right for negative ones.
     pub fn gen_shift(&self, steps: i64) -> BitBoard {
         if steps > 0 {
             *self << (steps as usize)
@@ -171,19 +232,20 @@ impl BitBoard {
         }
     }
 
-    /// Determines how many bits are set to 1 (i.e. how many pieces are on the board)
+    /// Determines how many bits are set to 1 (i.e. how many pieces are on the bitboard).
     pub fn pop_count(&self) -> u64 {
-        let mut board = self.0;
+        let mut bitboard = self.0;
         let mut count = 0;
-        while board != 0 {
+        while bitboard != 0 {
             count += 1;
-            board &= board - 1;
+            bitboard &= bitboard - 1;
         }
 
         count
     }
 
-    /// Flips the board vertically about the center ranks.
+    /// Flips the bitboard vertically about the center ranks.
+    ///
     /// Rank 1 is mapped to rank 8 and vice versa.
     pub fn flip_vertical(&self) -> BitBoard {
         let x = self.0;
@@ -198,7 +260,8 @@ impl BitBoard {
         BitBoard::from(new_value)
     }
 
-    /// Mirrors the board horizontally about the center files.
+    /// Mirrors the bitboard horizontally about the center files.
+    ///
     /// File "a" is mapped to file "h" and vice versa.
     pub fn mirror_horizontal(&self) -> BitBoard {
         let mut x = self.0;
@@ -212,6 +275,7 @@ impl BitBoard {
     }
 
     /// Flip a bitboard about the diagonal a1-h8.
+    ///
     /// Square h1 is mapped to a8 and vice versa.
     pub fn flip_diag_a1_h8(&self) -> BitBoard {
         let mut x = self.0;
@@ -229,7 +293,8 @@ impl BitBoard {
     }
 
     /// Flip a bitboard about the antidiagonal a8-h1.
-    /// Square a1 is mapped to h8 and vice versa.
+    ///
+    /// Square a1 is mapped to h8 and vice-versa.
     pub fn flip_diag_a8_h1(&self) -> BitBoard {
         let mut x = self.0;
         let mut t;
@@ -245,34 +310,41 @@ impl BitBoard {
         BitBoard::from(x)
     }
 
-    /// Rotates the board by 180 degrees
+    /// Rotates the bitboard by 180 degrees.
     pub fn rotate_180(&self) -> BitBoard {
         self.mirror_horizontal().flip_vertical()
     }
 
-    /// Rotate the board 90 degrees clockwise
+    /// Rotate the bitboard 90 degrees clockwise.
     pub fn rotate_90_cw(&self) -> BitBoard {
         self.flip_diag_a1_h8().flip_vertical()
     }
 
-    /// Rotate the board 90 degrees counter-clockwise
+    /// Rotate the bitboard 90 degrees counter-clockwise.
     pub fn rotate_90_ccw(&self) -> BitBoard {
         self.flip_vertical().flip_diag_a1_h8()
     }
 
+    /// Checks whether a specific bit is set in the bitboard.
     pub fn is_set(&self, square: Square) -> bool {
         (*self & square.as_bb()).value() != 0
     }
 
+    /// Sets a specific bit in the bitboard.
     pub fn set(&self, square: Square) -> BitBoard {
         *self | square.as_bb()
     }
 
+    /// Toggles a specific bit in the bitboard.
+    ///
+    /// If it was `1` it becomes `0` and vice-versa.
     pub fn toggle(&self, square: Square) -> BitBoard {
         *self ^ square.as_bb()
     }
 
-    /// Finds the LSB that is 1
+    /// Finds the Least Significant Bit that is `1`.
+    ///
+    /// The bitboard *must not* be empty when using this function.
     pub fn bit_scan_fw(&self) -> u64 {
         assert_ne!(*self, EMPTY);
         INDEX_64[(((self.0 ^ (self.0 - 1)).wrapping_mul(DEBRUJN_64.0)) >> 58) as usize]
